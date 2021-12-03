@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>1054</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -189,7 +189,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="start_erroe_map_button">
+      <widget class="QPushButton" name="start_error_map_button">
        <property name="text">
         <string>start</string>
        </property>
