@@ -1,6 +1,7 @@
 import matplotlib as matplotlib
 import pandas as pd
 import numpy as np
+import qdarkstyle
 from PyQt5 import QtWidgets, uic
 matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
@@ -24,6 +25,8 @@ class Main_window(QtWidgets.QMainWindow):
     def __init__(self):
         super(Main_window, self).__init__()
         uic.loadUi('Team7_on_fire.ui', self)
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
         # Menu Bar
         self.menubar = self.findChild(QtWidgets.QMenuBar, "menubar")
         self.menuFile  = self.menubar.findChild(QtWidgets.QMenu,"menuFile")
