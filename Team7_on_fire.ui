@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1060</width>
+    <width>1054</width>
     <height>788</height>
    </rect>
   </property>
@@ -17,26 +17,13 @@
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <layout class="QVBoxLayout" name="graph_Layout">
-      <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="Radio_butto_Layout">
+     <layout class="QHBoxLayout" name="Radio_butto_Layout" stretch="0,0">
       <item>
        <widget class="QRadioButton" name="one_chunk">
         <property name="text">
@@ -68,14 +55,14 @@
       <item row="2" column="2">
        <widget class="QLabel" name="degree_lable">
         <property name="text">
-         <string>TextLabel</string>
+         <string>0</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QLabel" name="number_of_chunks_lable">
         <property name="text">
-         <string>TextLabel</string>
+         <string>0</string>
         </property>
        </widget>
       </item>
@@ -126,7 +113,7 @@
       <item row="0" column="2">
        <widget class="QLabel" name="data_percentage_label">
         <property name="text">
-         <string>lable</string>
+         <string>0</string>
         </property>
        </widget>
       </item>
@@ -146,7 +133,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1060</width>
+     <width>1054</width>
      <height>21</height>
     </rect>
    </property>
@@ -154,7 +141,7 @@
     <property name="title">
      <string>File </string>
     </property>
-    <addaction name="actionOpen"/>
+    <addaction name="actionoppppen"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -211,9 +198,17 @@
     </layout>
    </widget>
   </widget>
-  <action name="actionOpen">
+  <action name="openaction">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Open </string>
+   </property>
+  </action>
+  <action name="actionoppppen">
+   <property name="text">
+    <string>oppppen</string>
    </property>
   </action>
  </widget>
