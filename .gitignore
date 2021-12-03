@@ -1,0 +1,11 @@
+.token
+.venv
+.env
+venv
+env
+.idea
+.vscode
+.vcode
+.eclipse
+build
+.build
