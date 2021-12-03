@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1060</width>
-    <height>689</height>
+    <height>788</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="graph_Layout">
       <item>
        <spacer name="verticalSpacer_2">
         <property name="orientation">
@@ -36,18 +36,18 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="Radio_butto_Layout">
       <item>
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="one_chunk">
         <property name="text">
-         <string>RadioButton</string>
+         <string>One Chunk</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton_2">
+       <widget class="QRadioButton" name="mlutiple_chunks">
         <property name="text">
-         <string>RadioButton</string>
+         <string>Multiple Chunks</string>
         </property>
        </widget>
       </item>
@@ -58,22 +58,29 @@
       <property name="horizontalSpacing">
        <number>71</number>
       </property>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Number of chunks</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="2">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="degree_lable">
         <property name="text">
          <string>TextLabel</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="number_of_chunks_lable">
         <property name="text">
          <string>TextLabel</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QSlider" name="horizontalSlider_2">
+       <widget class="QSlider" name="polynomial_degree_slider">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -88,24 +95,24 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QSlider" name="horizontalSlider">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Degree</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="start_button">
         <property name="text">
          <string>start</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Data Percentage</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSlider" name="data_percentage_slider">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -116,17 +123,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QSlider" name="horizontalSlider_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item row="0" column="2">
+       <widget class="QLabel" name="data_percentage_label">
+        <property name="text">
+         <string>lable</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Data Percentage</string>
+      <item row="1" column="1">
+       <widget class="QSlider" name="number_of_chunks_slider">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -171,7 +178,21 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      <layout class="QVBoxLayout" name="erro_map_layout">
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QProgressBar" name="progressBar">
@@ -181,9 +202,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="start_erroe_map_button">
        <property name="text">
-        <string>PushButton</string>
+        <string>start</string>
        </property>
       </widget>
      </item>
