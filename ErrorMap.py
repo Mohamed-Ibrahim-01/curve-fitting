@@ -40,6 +40,8 @@ class ErrorMap(FigureCanvas):
                 error = calError(x, y)
                 error_map_data[x_idx][y_idx] = error
                 self.progress += (1/total_num_errors)*100.0
+                print("**********************")
+                print(self.progress)
                 self.progressChanged.emit(self.progress)
         return error_map_data
 
@@ -61,7 +63,7 @@ class ThreadedErrorMap(qtc.QThread):
         self.error_map = ErrorMap()
         self.calErrorFunction = calError
         self.is_running = False
-        self.x_range, self.y_range = np.arange(40)+1, np.arange(40)+1
+        self.x_range, self.y_range = np.arange(30)+1, np.arange(30)+1
         self.error_map.progressChanged.connect(lambda progress: self.currProgress.emit(progress))
 
     def setErrorRanges(self, x_range, y_range):
@@ -74,7 +76,6 @@ class ThreadedErrorMap(qtc.QThread):
             self.calErrorFunction, self.x_range, self.y_range
         )
         self.ready.emit(error_map_data)
-        self.stop()
 
     def stop(self):
         self.is_running = False
