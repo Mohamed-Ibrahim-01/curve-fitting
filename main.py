@@ -7,6 +7,7 @@ matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+from ErrorMap import ErrorMap, ThreadedErrorMap
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import sys
@@ -36,7 +37,8 @@ class Main_window(QtWidgets.QMainWindow):
         # print(type(self.openAction))
 
         # graph layout
-        self.graph_layout = self.findChild(QtWidgets.QVBoxLayout, "graph_Layout")
+        self.error_map  = ErrorMap()
+        self.erro_map_layout.insertWidget(0, self.error_map)
 
 
         # Radio_butto_Layout
@@ -87,6 +89,11 @@ class Main_window(QtWidgets.QMainWindow):
         # Plot button signal
         self.ploting_button.clicked.connect(self.plot_data)
         self.fitting_button.clicked.connect(self.interpolation)
+        self.error_map_button.clicked.connect(self.error_map_handler)
+        self.error_map.ready.connect(self.toggleStartCancel)
+
+        self.thread_error_map = ThreadedErrorMap()
+        self.thread_error_map.currProgress.connect(self.update_progressbar)
 
         # self.openAction.triggered.connect(self.open_file())
 
