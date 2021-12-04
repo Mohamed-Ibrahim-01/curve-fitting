@@ -45,28 +45,28 @@
       <property name="horizontalSpacing">
        <number>71</number>
       </property>
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Number of chunks</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
+      <item row="3" column="2">
        <widget class="QLabel" name="degree_lable">
         <property name="text">
          <string>0</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
+      <item row="2" column="2">
        <widget class="QLabel" name="number_of_chunks_lable">
         <property name="text">
          <string>0</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QSlider" name="polynomial_degree_slider">
         <property name="minimumSize">
          <size>
@@ -82,45 +82,52 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QPushButton" name="start_button">
-        <property name="text">
-         <string>start</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Data Percentage</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
+      <item row="1" column="1">
        <widget class="QSlider" name="data_percentage_slider">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Data Percentage</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Degree</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
+      <item row="2" column="1">
+       <widget class="QSlider" name="number_of_chunks_slider">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
        <widget class="QLabel" name="data_percentage_label">
         <property name="text">
          <string>0</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QSlider" name="number_of_chunks_slider">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="start_button">
+        <property name="text">
+         <string>Plot Scatterd Points</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QPushButton" name="fitting_button">
+        <property name="text">
+         <string>Fit</string>
         </property>
        </widget>
       </item>
@@ -133,8 +140,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>894</width>
-     <height>20</height>
+     <width>1054</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
