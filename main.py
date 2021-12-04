@@ -9,6 +9,7 @@ from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from ErrorMap import ErrorMap
 import sys
 
 
@@ -68,7 +69,9 @@ class Main_window(QtWidgets.QMainWindow):
 
         # canves widget
         self.canves  = MplCanvas()
+        self.error_map  = ErrorMap()
         self.graph_layout.addWidget(self.canves )
+        self.erro_map_layout.addWidget(self.error_map)
 
         # init:
         self.init_visability_with_radio_buttons()
@@ -89,9 +92,13 @@ class Main_window(QtWidgets.QMainWindow):
 
         # self.openAction.triggered.connect(self.open_file())
 
+<<<<<<< HEAD
         #Data
 
 
+=======
+        self.start_error_map_button.clicked.connect(self.plot_error_map)
+>>>>>>> 3eba6d524c7f688ac6d0c78f485a38a094f51dc2
 
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
@@ -123,6 +130,7 @@ class Main_window(QtWidgets.QMainWindow):
         print(self.x_scattered_points)
 
     def plot_data(self):
+<<<<<<< HEAD
             if self.plotting_flag:
                 self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "-o")
                 self.canves.draw()
@@ -183,6 +191,13 @@ class Main_window(QtWidgets.QMainWindow):
             yfit.extend(last_chunk_fit(lastx_chunk))
         self.canves.axes.plot(xfit,yfit)
         self.canves.axes.drow()
+=======
+        self.canves.axes.plot(self.x_scattered_points,self.y_scattered_points,"-o")
+        self.canves.draw()
+
+    def plot_error_map(self):
+        self.error_map.testErrorMap()
+>>>>>>> 3eba6d524c7f688ac6d0c78f485a38a094f51dc2
 
 
 def main():
