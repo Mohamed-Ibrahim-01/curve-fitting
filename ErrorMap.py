@@ -13,10 +13,12 @@ plt.style.use('dark_background')
 
 class ErrorMap(FigureCanvas):
     ready = qtc.pyqtSignal()
+    progressChanged = qtc.pyqtSignal(int)
 
     def __init__(self, parent=None, width=4, height=3, dpi=100):
         self.fig = Figure()
         self.axes = self.fig.add_subplot(111)
+        self.progress = 0
         super().__init__(self.fig)
         self.fig.tight_layout()
 
@@ -27,17 +29,19 @@ class ErrorMap(FigureCanvas):
         self.fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(), cmap=color_map), ax=self.axes, cax=cax)
         self.fig.canvas.toolbar_visible = False
         self.draw()
-        time.sleep(5)
         self.ready.emit()
 
     def calculateErrorMap(self, calError, x_range, y_range):
-        progress = 0
-        error_map = np.zeros(shape=(len(x_range), len(y_range)))
+        self.progress = 0.0
+        error_map_data = np.zeros(shape=(len(x_range), len(y_range)))
+        total_num_errors = len(x_range)*len(y_range)
         for x_idx, x in enumerate(x_range, start=0):
             for y_idx, y in enumerate(y_range, start=0):
-                error_map[x_idx][y_idx] = calError(x, y)
-                progress += 1
-        return error_map
+                error = calError(x, y)
+                error_map_data[x_idx][y_idx] = error
+                self.progress += (1/total_num_errors)*100.0
+                self.progressChanged.emit(self.progress)
+        return error_map_data
 
     def randomErrorCalculation(self, x, y):
         return random.uniform(0, 1)
@@ -50,20 +54,28 @@ class ErrorMap(FigureCanvas):
 
 class ThreadedErrorMap(qtc.QThread):
     currProgress = qtc.pyqtSignal(int)
+    ready = qtc.pyqtSignal(object)
 
-    def __init__(self, parent=None ):
-        super(ThreadedErrorMap,self).__init__(parent)
-        error_map = ErrorMap()
+    def __init__(self, calError, parent=None ):
+        super(ThreadedErrorMap, self).__init__(parent)
+        self.error_map = ErrorMap()
+        self.calErrorFunction = calError
         self.is_running = False
+        self.x_range, self.y_range = np.arange(40)+1, np.arange(40)+1
+        self.error_map.progressChanged.connect(lambda progress: self.currProgress.emit(progress))
+
+    def setErrorRanges(self, x_range, y_range):
+        self.x_range = x_range
+        self.y_range = y_range
 
     def run(self):
         self.is_running = True
-        while True:
-            val = random.randint(0,100)
-            time.sleep(2)
-            self.currProgress.emit(val)
+        error_map_data = self.error_map.calculateErrorMap(
+            self.calErrorFunction, self.x_range, self.y_range
+        )
+        self.ready.emit(error_map_data)
+        self.stop()
 
     def stop(self):
         self.is_running = False
-        print('Caluculating Error Map Cancelled')
         self.terminate()
