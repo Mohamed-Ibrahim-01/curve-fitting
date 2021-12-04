@@ -48,13 +48,12 @@ class ErrorMap(FigureCanvas):
         self.plotErrorMap(data=error_map)
 
 
-
-
 class ThreadedErrorMap(qtc.QThread):
     currProgress = qtc.pyqtSignal(int)
 
-    def __init__(self, parent=None, data=[]):
+    def __init__(self, parent=None ):
         super(ThreadedErrorMap,self).__init__(parent)
+        error_map = ErrorMap()
         self.is_running = False
 
     def run(self):

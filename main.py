@@ -87,7 +87,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         # Plot button signal
         self.ploting_button.clicked.connect(self.plot_data)
-        #self.fitting_button.clicked.connect(self.interpolation)
+        self.fitting_button.clicked.connect(self.interpolation)
 
         # self.openAction.triggered.connect(self.open_file())
 
@@ -199,6 +199,10 @@ class Main_window(QtWidgets.QMainWindow):
             self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
 
     def error_map_handler(self):
+        print("--------------------------------------------")
+        print(self.getError(4,4))
+        print("--------------------------------------------")
+
         curr_text = self.error_map_button.text()
         if curr_text == "Start":
             if not self.thread_error_map.is_running:
