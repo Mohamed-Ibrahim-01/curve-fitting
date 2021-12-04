@@ -13,7 +13,6 @@ def getError(function_degree,no_of_chuncks):
     intervals = int(length_of_data/no_of_chuncks)
     for i in range(no_of_chuncks):
         coefficients, residual, _, _, _  = np.polyfit(time[i*intervals:intervals*(i+1)-1],filtered_ECG_mV[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
-        print(residual)
         total_Residual = total_Residual + residual
     return total_Residual/length_of_data
         
