@@ -1,8 +1,8 @@
 import matplotlib as matplotlib
 import pandas as pd
 import numpy as np
-import qdarkstyle
 from PyQt5 import QtWidgets, uic
+import qdarkstyle
 matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
 from PyQt5 import QtCore, QtWidgets
@@ -62,6 +62,8 @@ class Main_window(QtWidgets.QMainWindow):
 
         #Buttons
         self.ploting_button = self.findChild(QtWidgets.QPushButton,"start_button")
+        self.plotting_flag = True
+        self.fitting_button = self.findChild(QtWidgets.QPushButton,"fitting_button")
 
 
         # canves widget
@@ -85,6 +87,8 @@ class Main_window(QtWidgets.QMainWindow):
 
         # Plot button signal
         self.ploting_button.clicked.connect(self.plot_data)
+        #self.fitting_button.clicked.connect(self.interpolation)
+
         # self.openAction.triggered.connect(self.open_file())
 
         self.error_map_button.clicked.connect(self.error_map_handler)
@@ -123,6 +127,65 @@ class Main_window(QtWidgets.QMainWindow):
         print(self.x_scattered_points)
 
     def plot_data(self):
+            if self.plotting_flag:
+                self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "-o")
+                self.canves.draw()
+                self.plotting_flag = False
+                self.ploting_button.setText("Clear Scatterd Points")
+            else:
+                self.canves.axes.cla()
+                self.canves.axes.grid()
+                self.canves.draw()
+                self.plotting_flag = True
+                self.ploting_button.setText("Plot Scatterd Points")
+
+    def getError(self,function_degree, no_of_chuncks):
+        total_Residual = 0
+        length_of_data = len(self.x_scattered_points)
+        intervals = int(length_of_data / no_of_chuncks)
+        for i in range(no_of_chuncks):
+            coefficients, residual, _, _, _ = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
+                                                         self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1],
+                                                         function_degree, full='true')
+            total_Residual = total_Residual + residual
+        return total_Residual / length_of_data
+
+    def fitting_datd(self, function_degree, no_of_chuncks):
+        coefficient_list = []
+        length_of_data = len(self.x_scattered_points)
+        intervals = int(length_of_data / no_of_chuncks)
+        for i in range(no_of_chuncks):
+            coefficient = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
+                                     self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1], function_degree)
+            coefficient_list.append(coefficient)
+
+    def interpolation(self):
+        print("inside interpolation")
+        self.function_degree = self.polynomial_degree_slider.value()
+        self.no_of_chuncks = self.number_of_chunks_slider.value()
+        coefficient_list = self.fitting_datd(self.function_degree, self.no_of_chuncks)
+        print("after interpolation")
+
+        xfit = np.linspace(0, self.x_scattered_points[-1], 1000)
+        yfit = []
+        x_cunk_boundry = []
+        intervals = int(len(xfit) /self.no_of_chuncks)
+
+        for i in range(self.no_of_chuncks):
+            xchunk = xfit[i * intervals:intervals * (i + 1) - 1]
+            chunk_fit = np.poly1d(coefficient_list[i])
+            yfit.extend(chunk_fit(xchunk))
+            x_cunk_boundry.append(xchunk[-1])
+            tt = intervals * (i + 1) - 1
+            # if(i == no_of_chuncks and intervals * (i + 1)<len(xfit)-1 ):
+            #     xchunk = xfit[(i+1) * intervals:]
+            #     yfit.extend(chunk_fit(xchunk))
+            #     x_cunk_boundry.append(xchunk[-1])
+        if (len(yfit) < len(xfit)):
+            lastx_chunk = xfit[len(yfit):]
+            last_chunk_fit = np.poly1d(coefficient_list[-1])
+            yfit.extend(last_chunk_fit(lastx_chunk))
+        self.canves.axes.plot(xfit,yfit)
         self.canves.axes.plot(self.x_scattered_points,self.y_scattered_points,"-o")
         self.canves.draw()
 
