@@ -25,7 +25,7 @@ class MplCanvas(FigureCanvas):
 class Main_window(QtWidgets.QMainWindow):
     def __init__(self):
         super(Main_window, self).__init__()
-        uic.loadUi('Team7_on_fire.ui', self)
+        uic.loadUi('gui_main.ui', self)
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
         # Menu Bar
