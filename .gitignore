@@ -9,3 +9,7 @@ env
 .eclipse
 build
 .build
+**/__pycache__/**
+__pycache__/**
+__pycache__
+/__pycache__/**

@@ -9,7 +9,7 @@ from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from ErrorMap import ErrorMap
+from ErrorMap import ErrorMap, ThreadedErrorMap
 import sys
 
 
@@ -31,7 +31,6 @@ class Main_window(QtWidgets.QMainWindow):
         # Menu Bar
         self.menubar = self.findChild(QtWidgets.QMenuBar, "menubar")
         self.menuFile  = self.menubar.findChild(QtWidgets.QMenu,"menuFile")
-        print(type(self.menuFile))
         self.menuFile.addAction("open",self.open_file)
         #   =self.menuFile.findChild(QtWidgets.QAction,"actionoppppen")
         # print(type(self.openAction))
@@ -69,7 +68,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves  = MplCanvas()
         self.error_map  = ErrorMap()
         self.graph_layout.addWidget(self.canves )
-        self.erro_map_layout.addWidget(self.error_map)
+        self.erro_map_layout.insertWidget(0, self.error_map)
 
         # init:
         self.init_visability_with_radio_buttons()
@@ -88,7 +87,11 @@ class Main_window(QtWidgets.QMainWindow):
         self.ploting_button.clicked.connect(self.plot_data)
         # self.openAction.triggered.connect(self.open_file())
 
-        self.start_error_map_button.clicked.connect(self.plot_error_map)
+        self.error_map_button.clicked.connect(self.error_map_handler)
+        self.error_map.ready.connect(self.toggleStartCancel)
+
+        self.thread_error_map = ThreadedErrorMap()
+        self.thread_error_map.currProgress.connect(self.update_progressbar)
 
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
@@ -123,8 +126,31 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves.axes.plot(self.x_scattered_points,self.y_scattered_points,"-o")
         self.canves.draw()
 
-    def plot_error_map(self):
-        self.error_map.testErrorMap()
+    def toggleStartCancel(self):
+        curr_text = self.error_map_button.text()
+        if curr_text == "Start":
+            self.error_map_button.setText("Cancel")
+            self.error_map_button.setStyleSheet("background-color: #930000;")
+        else:
+            self.error_map_button.setText("Start")
+            self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
+
+    def error_map_handler(self):
+        curr_text = self.error_map_button.text()
+        if curr_text == "Start":
+            if not self.thread_error_map.is_running:
+                self.thread_error_map.start()
+                self.toggleStartCancel()
+
+        if curr_text == "Cancel":
+            if self.thread_error_map.is_running:
+                self.thread_error_map.stop()
+                self.progressBar.setValue(0)
+                self.toggleStartCancel()
+
+    def update_progressbar(self,val):
+        self.progressBar.setValue(val)
+        self.thread_error_map.start()
 
 
 def main():
