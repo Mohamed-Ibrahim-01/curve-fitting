@@ -9,7 +9,6 @@ from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from ErrorMap import ErrorMap
 import sys
 
 
@@ -50,6 +49,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.data_percentage_slider = self.findChild(QtWidgets.QSlider, "data_percentage_slider")
         self.number_of_chunks_slider = self.findChild(QtWidgets.QSlider, "number_of_chunks_slider")
         self.polynomial_degree_slider = self.findChild(QtWidgets.QSlider, "polynomial_degree_slider")
+        self.number_of_chunks_slider.setValue(1)
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider,self.polynomial_degree_slider]
 
 
@@ -69,9 +69,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         # canves widget
         self.canves  = MplCanvas()
-        self.error_map  = ErrorMap()
         self.graph_layout.addWidget(self.canves )
-        self.erro_map_layout.addWidget(self.error_map)
 
         # init:
         self.init_visability_with_radio_buttons()
@@ -92,13 +90,9 @@ class Main_window(QtWidgets.QMainWindow):
 
         # self.openAction.triggered.connect(self.open_file())
 
-<<<<<<< HEAD
         #Data
 
 
-=======
-        self.start_error_map_button.clicked.connect(self.plot_error_map)
->>>>>>> 3eba6d524c7f688ac6d0c78f485a38a094f51dc2
 
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
@@ -130,9 +124,8 @@ class Main_window(QtWidgets.QMainWindow):
         print(self.x_scattered_points)
 
     def plot_data(self):
-<<<<<<< HEAD
             if self.plotting_flag:
-                self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "-o")
+                self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o")
                 self.canves.draw()
                 self.plotting_flag = False
                 self.ploting_button.setText("Clear Scatterd Points")
@@ -155,19 +148,34 @@ class Main_window(QtWidgets.QMainWindow):
         return total_Residual / length_of_data
 
     def fitting_datd(self, function_degree, no_of_chuncks):
+        print("iside fiiting1")
         coefficient_list = []
         length_of_data = len(self.x_scattered_points)
-        intervals = int(length_of_data / no_of_chuncks)
+        # print(length_of_data)
+
+        intervals = length_of_data // no_of_chuncks
+        # print(intervals)
+
+        # print("iside fiiting2")
+
         for i in range(no_of_chuncks):
+            # print("iside fooor")
+
             coefficient = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
                                      self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1], function_degree)
             coefficient_list.append(coefficient)
+        # print("iside fiiting24")
+
+        return coefficient_list
 
     def interpolation(self):
         print("inside interpolation")
-        self.function_degree = self.polynomial_degree_slider.value()
+        print(self.polynomial_degree_slider.value())
+
+        self.degree = self.polynomial_degree_slider.value()
         self.no_of_chuncks = self.number_of_chunks_slider.value()
-        coefficient_list = self.fitting_datd(self.function_degree, self.no_of_chuncks)
+        print("after slider")
+        coefficient_list = self.fitting_datd(self.degree, self.no_of_chuncks)
         print("after interpolation")
 
         xfit = np.linspace(0, self.x_scattered_points[-1], 1000)
@@ -178,7 +186,9 @@ class Main_window(QtWidgets.QMainWindow):
         for i in range(self.no_of_chuncks):
             xchunk = xfit[i * intervals:intervals * (i + 1) - 1]
             chunk_fit = np.poly1d(coefficient_list[i])
-            yfit.extend(chunk_fit(xchunk))
+            chunk_fit = chunk_fit(xchunk)
+            chunk_fit[0:5] = 0
+            yfit.extend(chunk_fit)
             x_cunk_boundry.append(xchunk[-1])
             tt = intervals * (i + 1) - 1
             # if(i == no_of_chuncks and intervals * (i + 1)<len(xfit)-1 ):
@@ -189,15 +199,16 @@ class Main_window(QtWidgets.QMainWindow):
             lastx_chunk = xfit[len(yfit):]
             last_chunk_fit = np.poly1d(coefficient_list[-1])
             yfit.extend(last_chunk_fit(lastx_chunk))
-        self.canves.axes.plot(xfit,yfit)
-        self.canves.axes.drow()
-=======
-        self.canves.axes.plot(self.x_scattered_points,self.y_scattered_points,"-o")
-        self.canves.draw()
+        print("after interpolation befor plotting")
+        # max = max(self.y_scattered_points)
+        # min = min(self.y_scattered_points)
+        for i in range(len(yfit)):
+            if yfit[i] > max(self.y_scattered_points)or yfit[i] < min(self.y_scattered_points):
+                yfit[i] = 0
 
-    def plot_error_map(self):
-        self.error_map.testErrorMap()
->>>>>>> 3eba6d524c7f688ac6d0c78f485a38a094f51dc2
+        self.canves.axes.plot(xfit,yfit,"--")
+        # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
+        self.canves.draw()
 
 
 def main():
