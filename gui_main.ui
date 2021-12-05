@@ -113,6 +113,9 @@
       </item>
       <item row="1" column="1">
        <widget class="QSlider" name="data_percentage_slider">
+        <property name="maximum">
+         <number>100</number>
+        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -142,7 +145,7 @@
       <item row="1" column="2">
        <widget class="QLabel" name="data_percentage_label">
         <property name="text">
-         <string>0</string>
+         <string>100</string>
         </property>
        </widget>
       </item>
