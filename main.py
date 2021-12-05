@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from PyQt5 import QtWidgets, uic
 import qdarkstyle
+from matplotlib import pyplot as plt
+
 matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
 from PyQt5 import QtCore, QtWidgets
@@ -15,12 +17,18 @@ import sys
 
 class MplCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure()
+    def __init__(self, parent=None, width=0.1, height=0.01, dpi=100):
+        self.fig =Figure()
         self.axes = self.fig.add_subplot(111)
         super().__init__(self.fig)
         self.fig.tight_layout()
         self.axes.grid()
+class latex_canves(FigureCanvas):
+
+    def __init__(self, parent=None, width=1, height=2, dpi=100):
+        self.fig2 = Figure(figsize=(width, height), dpi=dpi)
+        self.axes2 = self.fig2.add_subplot(111)
+        super().__init__(self.fig2)
 
 class Main_window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -53,6 +61,8 @@ class Main_window(QtWidgets.QMainWindow):
         self.number_of_chunks_slider = self.findChild(QtWidgets.QSlider, "number_of_chunks_slider")
         self.polynomial_degree_slider = self.findChild(QtWidgets.QSlider, "polynomial_degree_slider")
         self.number_of_chunks_slider.setValue(1)
+        self.data_percentage_slider.setValue(100)
+
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider,self.polynomial_degree_slider]
 
 
@@ -63,7 +73,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.lables_arr =[ self.data_percentage_label, self.number_of_chunks_lable,
                                 self.degree_lable]
         self.lable_3 = self.findChild(QtWidgets.QLabel, "label_3")
-        self.eq_lable =  self.findChild(QtWidgets.QLabel,"eq_label")
+        # self.eq_lable =  self.findChild(QtWidgets.QLabel,"eq_label")
         #Buttons
         self.ploting_button = self.findChild(QtWidgets.QPushButton,"start_button")
         self.plotting_flag = True
@@ -75,6 +85,12 @@ class Main_window(QtWidgets.QMainWindow):
         # canves widget
         self.canves  = MplCanvas()
         self.graph_layout.addWidget(self.canves )
+
+        # Latex widget
+        self.latex_widget = latex_canves()
+        self.latex_layout = self.findChild(QtWidgets.QHBoxLayout,"latex_layout")
+        # self.latex_layout.set
+        self.latex_layout.addWidget(self.latex_widget)
 
         # init:
         self.init_visability_with_radio_buttons()
@@ -175,6 +191,8 @@ class Main_window(QtWidgets.QMainWindow):
         return coefficient_list
 
     def interpolation(self):
+        self.latex_widget.axes2.cla()
+        self.latex_widget.draw()
         print("inside interpolation")
         print(self.polynomial_degree_slider.value())
 
@@ -214,7 +232,7 @@ class Main_window(QtWidgets.QMainWindow):
         # print("coeeeeff ",self.coefficient_list )
         # polynomial_formela = self.print_poly(self.coefficient_list[0])
 
-
+        self.canves.axes.cla()
         self.canves.axes.plot(xfit,yfit,"--")
         self.canves.axes.legend(loc='upper right')
         self.canves.axes.set_xlim(0,max(self.x_scattered_points))
@@ -273,6 +291,7 @@ class Main_window(QtWidgets.QMainWindow):
         return polynomial
 
     def poly_box_adjustment(self):
+        self.poly_eq_box.clear()
         for i in range(self.no_of_chuncks):
             self.poly_eq_box.addItem("Chunk : "+str(i+1))
 
@@ -280,11 +299,15 @@ class Main_window(QtWidgets.QMainWindow):
     def poly_eq_box_selected(self,index):
         selected_eq_coefficients = self.coefficient_list[index]
         self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients,2))
+        print(type(self.polynomial_eq))
 
-        self.eq_lable.setText(self.polynomial_eq)
+        self.latex_widget.axes2.cla()
+        self.latex_widget.draw()
+        self.latex_widget.axes2.text(0, 5, "$"+self.polynomial_eq+"$")
+        self.latex_widget.axes2.axis([0, 10, 0, 10])
+        self.latex_widget.draw()
 
-
-
+    
 
 
 def main():
