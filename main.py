@@ -3,10 +3,8 @@ import pandas as pd
 import numpy as np
 from PyQt5 import QtWidgets, uic
 import qdarkstyle
-<<<<<<< HEAD
+
 from matplotlib import pyplot as plt
-=======
->>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
 
 matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
@@ -63,19 +61,21 @@ class Main_window(QtWidgets.QMainWindow):
         self.number_of_chunks_slider = self.findChild(QtWidgets.QSlider, "number_of_chunks_slider")
         self.polynomial_degree_slider = self.findChild(QtWidgets.QSlider, "polynomial_degree_slider")
         self.number_of_chunks_slider.setValue(1)
-<<<<<<< HEAD
+
         self.data_percentage_slider.setValue(100)
 
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider,self.polynomial_degree_slider]
 
-=======
-        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
->>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
 
+        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
         # lables
         self.data_percentage_label = self.findChild(QtWidgets.QLabel, "data_percentage_label")
+        self.data_percentage_label.setText(str(100))
         self.number_of_chunks_lable = self.findChild(QtWidgets.QLabel, "number_of_chunks_lable")
+        self.number_of_chunks_lable.setText(str(1))
+
         self.degree_lable = self.findChild(QtWidgets.QLabel, "degree_lable")
+
         self.lables_arr = [self.data_percentage_label, self.number_of_chunks_lable,
                            self.degree_lable]
         self.lable_3 = self.findChild(QtWidgets.QLabel, "label_3")
@@ -112,6 +112,7 @@ class Main_window(QtWidgets.QMainWindow):
         for i in range(len(self.sliders_arr)):
             self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
 
+        self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
         # Plot buttons signal
         self.ploting_button.clicked.connect(self.plot_data)
         self.fitting_button.clicked.connect(self.interpolation)
@@ -239,15 +240,16 @@ class Main_window(QtWidgets.QMainWindow):
         # print("coeeeeff ",self.coefficient_list )
         # polynomial_formela = self.print_poly(self.coefficient_list[0])
 
-<<<<<<< HEAD
+
         self.canves.axes.cla()
-=======
+
 
         # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
->>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
+
         self.canves.axes.plot(xfit,yfit,"--")
         self.canves.axes.legend(loc='upper right')
         self.canves.axes.set_xlim(0,max(self.x_scattered_points))
+        self.canves.axes.grid()
         self.canves.draw()
 
     def toggleStartCancel(self):
@@ -321,7 +323,16 @@ class Main_window(QtWidgets.QMainWindow):
         self.latex_widget.axes2.axis([0, 10, 0, 10])
         self.latex_widget.draw()
 
-    
+    def change_percentage_of_fitted_data(self,value):
+        self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
+        self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
+        lenth = len(self.x_scattered_points)
+        last_idx = int(lenth*(value/100)) -1
+        print("percentage of data error")
+        self.x_scattered_points = self.x_scattered_points[0:last_idx]
+        self.y_scattered_points = self.y_scattered_points[0:last_idx]
+
+
 
 
 def main():
