@@ -62,21 +62,26 @@ class ThreadedErrorMap(qtc.QThread):
         super(ThreadedErrorMap, self).__init__(parent)
         self.error_map = ErrorMap()
         self.calErrorFunction = calError
-        self.is_running = False
+        self.is_running = True
         self.x_range, self.y_range = np.arange(30)+1, np.arange(30)+1
-        self.error_map.progressChanged.connect(lambda progress: self.currProgress.emit(progress))
+        self.error_map.progressChanged.connect(self.updateProgress)
+
+    def updateProgress(self, progress):
+        if self.is_running:
+            self.currProgress.emit(progress)
+        else: self.currProgress.emit(0)
 
     def setErrorRanges(self, x_range, y_range):
         self.x_range = x_range
         self.y_range = y_range
 
     def run(self):
-        self.is_running = True
-        error_map_data = self.error_map.calculateErrorMap(
-            self.calErrorFunction, self.x_range, self.y_range
-        )
-        self.ready.emit(error_map_data)
+        if self.is_running:
+            error_map_data = self.error_map.calculateErrorMap(
+                self.calErrorFunction, self.x_range, self.y_range
+            )
+            self.ready.emit(error_map_data)
 
     def stop(self):
         self.is_running = False
-        self.terminate()
+        self.quit()

@@ -117,11 +117,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.ploting_button.clicked.connect(self.plot_data)
         self.fitting_button.clicked.connect(self.interpolation)
         self.error_map_button.clicked.connect(self.error_map_handler)
-        self.error_map.ready.connect(self.toggleStartCancel)
 
-        self.threaded_error_map = ThreadedErrorMap(self.getError)
-        self.threaded_error_map.currProgress.connect(self.update_progressbar)
-        self.threaded_error_map.ready.connect(self.showErrorMap)
 
         # combo box signals
 
@@ -252,36 +248,43 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves.axes.grid()
         self.canves.draw()
 
+    def setStartButton(self):
+        self.error_map_button.setText("Start")
+        self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
+
+    def setCancelButton(self):
+        self.error_map_button.setText("Cancel")
+        self.error_map_button.setStyleSheet("background-color: #930000;")
+
     def toggleStartCancel(self):
         curr_text = self.error_map_button.text()
-        print(f"I'am {curr_text}")
-        if curr_text == "Start":
-            self.error_map_button.setText("Cancel")
-            self.error_map_button.setStyleSheet("background-color: #930000;")
-        else:
-            self.error_map_button.setText("Start")
-            self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
+        if curr_text == "Start": self.setCancelButton()
+        else: self.setStartButton()
 
     def error_map_handler(self):
 
         curr_text = self.error_map_button.text()
         if curr_text == "Start":
-            if not self.threaded_error_map.is_running:
-                self.threaded_error_map.start()
-                self.toggleStartCancel()
+            self.threaded_error_map = ThreadedErrorMap(self.getError)
+            self.threaded_error_map.currProgress.connect(self.update_progressbar)
+            self.threaded_error_map.ready.connect(self.showErrorMap)
+            self.threaded_error_map.start()
+            self.setCancelButton()
 
         if curr_text == "Cancel":
-            if self.threaded_error_map.is_running:
-                self.threaded_error_map.stop()
-                self.progressBar.setValue(0)
-                self.toggleStartCancel()
+            self.progressBar.setValue(0)
+            self.setStartButton()
+
+        else : print("SHIT IS HERE")
 
     def update_progressbar(self, val):
         self.progressBar.setValue(val)
         self.threaded_error_map.start()
 
     def showErrorMap(self, error_map_data):
+        self.threaded_error_map.stop()
         self.error_map.plotErrorMap(error_map_data)
+        self.setStartButton()
 
 
     def print_poly(self,list):
