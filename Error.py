@@ -10,6 +10,7 @@ def getError(function_degree,no_of_chuncks,overlapping):
     total_Residual = 0
     intervals = int(length_of_data/no_of_chuncks)
     for i in range(no_of_chuncks):
+<<<<<<< HEAD
         if i == 0:
             coefficients, residual, _, _, _  = np.polyfit(time[i*intervals:intervals*(i+1)-1],filtered_ECG_mV[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
             total_Residual = total_Residual + residual
@@ -40,6 +41,11 @@ def getError(function_degree,no_of_chuncks,overlapping):
 
 
     return total_Residual/np.sqrt(length_of_data)
+=======
+        coefficients, residual, _, _, _  = np.polyfit(time[i*intervals:intervals*(i+1)-1],filtered_ECG_mV[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
+        total_Residual = total_Residual + residual
+    return total_Residual/length_of_data
+>>>>>>> e2fda81f91a67a4dd78a8c35582b84c5ade5de93
         
     
 
