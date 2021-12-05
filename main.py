@@ -2,6 +2,7 @@ import matplotlib as matplotlib
 import pandas as pd
 import numpy as np
 from PyQt5 import QtWidgets, uic
+import PyQt5.QtCore as qtc
 import qdarkstyle
 
 from matplotlib import pyplot as plt
@@ -10,7 +11,7 @@ matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-from ErrorMap import ErrorMap, ThreadedErrorMap
+from ErrorMap import ErrorMap, ErrorMapWorker
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import sys
@@ -21,14 +22,19 @@ class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=0.1, height=0.01, dpi=100):
         self.fig =Figure()
         self.axes = self.fig.add_subplot(111)
+        for spine in ['right', 'top', 'left', 'bottom']:
+            self.axes.spines[spine].set_color('gray')
+        self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig)
         self.fig.tight_layout()
-        self.axes.grid()
 class latex_canves(FigureCanvas):
 
-    def __init__(self, parent=None, width=1, height=2, dpi=100):
+    def __init__(self, parent=None, width=0, height=0, dpi=150):
         self.fig2 = Figure(figsize=(width, height), dpi=dpi)
         self.axes2 = self.fig2.add_subplot(111)
+        for spine in ['right', 'top', 'left', 'bottom']:
+            self.axes2.spines[spine].set_visible(False)
+        self.axes2.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig2)
 
 class Main_window(QtWidgets.QMainWindow):
@@ -41,7 +47,6 @@ class Main_window(QtWidgets.QMainWindow):
         # Menu Bar
         self.menubar = self.findChild(QtWidgets.QMenuBar, "menubar")
         self.menuFile = self.menubar.findChild(QtWidgets.QMenu, "menuFile")
-        print(type(self.menuFile))
         self.menuFile.addAction("open", self.open_file)
         #   =self.menuFile.findChild(QtWidgets.QAction,"actionoppppen")
         # print(type(self.openAction))
@@ -49,9 +54,13 @@ class Main_window(QtWidgets.QMainWindow):
         # graph layout
         self.error_map = ErrorMap()
         self.erro_map_layout.insertWidget(0, self.error_map)
+        self.x_axis = "Number of Chunks"
+        self.y_axis = "Polynomial Degree"
 
         # Radio_butto_Layout
         # radio buttons
+        self.polydeg = self.findChild(QtWidgets.QRadioButton, "polydeg")
+        self.numchunk = self.findChild(QtWidgets.QRadioButton, "numchunk")
         self.one_chunk_button = self.findChild(QtWidgets.QRadioButton, "one_chunk")
         self.multiple_chunks_button = self.findChild(QtWidgets.QRadioButton, "mlutiple_chunks")
 
@@ -87,6 +96,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         # combo Box
         self.poly_eq_box = self.findChild(QtWidgets.QComboBox,"poly_eq_box")
+        self.overlap = self.findChild(QtWidgets.QSpinBox, "overlap")
 
         # canves widget
         self.canves = MplCanvas()
@@ -126,6 +136,15 @@ class Main_window(QtWidgets.QMainWindow):
 
         # Data
 
+        self.polydeg.toggled.connect(self.change_axis)
+    def change_axis(self):
+        if self.polydeg.isChecked():
+            self.x_axis = "Polynomial Degree"
+            self.y_axis = "Number of Chunks"
+        else:
+            self.y_axis = "Polynomial Degree"
+            self.x_axis = "Number of Chunks"
+
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
         self.setting_chunks_mode()
@@ -150,8 +169,6 @@ class Main_window(QtWidgets.QMainWindow):
             self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
             self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
 
-        print(self.x_scattered_points)
-
     def plot_data(self):
         if self.plotting_flag:
             self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
@@ -160,10 +177,32 @@ class Main_window(QtWidgets.QMainWindow):
             self.ploting_button.setText("Clear Scatterd Points")
         else:
             self.canves.axes.cla()
-            self.canves.axes.grid()
             self.canves.draw()
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
+
+    def getErrorOverlap(self, function_degree,no_of_chuncks,overlapping):
+        total_Residual = 0
+        length_of_data = len(self.x_scattered_points)
+        intervals = int(length_of_data / no_of_chuncks)
+        for i in range(no_of_chuncks):
+            if i == 0:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals:intervals*(i+1)-1],self.y_scattered_points[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+
+            elif i<no_of_chuncks-1:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))]
+                ,self.y_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+
+            else:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data]
+                ,self.y_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+        return total_Residual/np.sqrt(length_of_data)
 
     def getError(self, function_degree, no_of_chuncks):
         "Hello Guys"
@@ -237,7 +276,6 @@ class Main_window(QtWidgets.QMainWindow):
         # polynomial_formela = self.print_poly(self.coefficient_list[0])
 
 
-        self.canves.axes.cla()
 
 
         # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
@@ -245,7 +283,6 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves.axes.plot(xfit,yfit,"--")
         self.canves.axes.legend(loc='upper right')
         self.canves.axes.set_xlim(0,max(self.x_scattered_points))
-        self.canves.axes.grid()
         self.canves.draw()
 
     def setStartButton(self):
@@ -265,45 +302,51 @@ class Main_window(QtWidgets.QMainWindow):
 
         curr_text = self.error_map_button.text()
         if curr_text == "Start":
-            self.threaded_error_map = ThreadedErrorMap(self.getError)
-            self.threaded_error_map.currProgress.connect(self.update_progressbar)
-            self.threaded_error_map.ready.connect(self.showErrorMap)
-            self.threaded_error_map.start()
+            overlap_value = self.overlap.value()
+            self.error_map_worker = ErrorMapWorker(self.getErrorOverlap, overlap_value)
+            self.error_map_thread = qtc.QThread()
+            self.error_map_worker.currProgress.connect(self.update_progressbar)
+            self.error_map_worker.moveToThread(self.error_map_thread)
+            self.error_map_worker.ready.connect(self.showErrorMap)
+            self.error_map_thread.started.connect(self.error_map_worker.run)
+            self.error_map_thread.start()
             self.setCancelButton()
 
         if curr_text == "Cancel":
-            self.progressBar.setValue(0)
+            self.error_map_worker.stop()
             self.setStartButton()
-
-        else : print("SHIT IS HERE")
+            self.error_map.clear()
 
     def update_progressbar(self, val):
         self.progressBar.setValue(val)
-        self.threaded_error_map.start()
 
-    def showErrorMap(self, error_map_data):
-        self.threaded_error_map.stop()
-        self.error_map.plotErrorMap(error_map_data)
+    def showErrorMap(self,canceled, error_map_data):
+        self.error_map_thread.quit()
+        if not canceled :
+            self.error_map_plot = self.error_map.plotErrorMap(
+                error_map_data, x_axis=self.x_axis, y_axis=self.y_axis
+            )
         self.setStartButton()
+        self.progressBar.setValue(0)
 
 
     def print_poly(self,list):
         polynomial = ''
         order = len(list) - 1
         for coef in list:
-            if coef is not 0 and order is 1:
+            if coef != 0 and order == 1:
                 term = str(coef) + 'x'
                 polynomial += term
-            elif coef is not 0 and order is 0:
+            elif coef != 0 and order == 0:
                 term = str(coef)
                 polynomial += term
-            elif coef is not 0 and order is not 0 and order is not 1:
+            elif coef != 0 and order != 0 and order != 1:
                 term = str(coef) + 'x^' + str(order)
                 polynomial += term
-            elif coef is 0:
+            elif coef == 0:
                 pass
 
-            if order is not 0 and coef is not 0:
+            if order != 0 and coef != 0:
                 polynomial += ' + '
             order += -1
         # print(polynomial)
@@ -318,7 +361,6 @@ class Main_window(QtWidgets.QMainWindow):
     def poly_eq_box_selected(self,index):
         selected_eq_coefficients = self.coefficient_list[index]
         self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients,2))
-        print(type(self.polynomial_eq))
 
         self.latex_widget.axes2.cla()
         self.latex_widget.draw()
