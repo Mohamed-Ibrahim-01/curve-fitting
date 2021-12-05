@@ -3,7 +3,10 @@ import pandas as pd
 import numpy as np
 from PyQt5 import QtWidgets, uic
 import qdarkstyle
+<<<<<<< HEAD
 from matplotlib import pyplot as plt
+=======
+>>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
 
 matplotlib.use('Qt5Agg')
 from matplotlib.pyplot import isinteractive
@@ -39,16 +42,15 @@ class Main_window(QtWidgets.QMainWindow):
 
         # Menu Bar
         self.menubar = self.findChild(QtWidgets.QMenuBar, "menubar")
-        self.menuFile  = self.menubar.findChild(QtWidgets.QMenu,"menuFile")
+        self.menuFile = self.menubar.findChild(QtWidgets.QMenu, "menuFile")
         print(type(self.menuFile))
-        self.menuFile.addAction("open",self.open_file)
+        self.menuFile.addAction("open", self.open_file)
         #   =self.menuFile.findChild(QtWidgets.QAction,"actionoppppen")
         # print(type(self.openAction))
 
         # graph layout
-        self.error_map  = ErrorMap()
+        self.error_map = ErrorMap()
         self.erro_map_layout.insertWidget(0, self.error_map)
-
 
         # Radio_butto_Layout
         # radio buttons
@@ -61,17 +63,21 @@ class Main_window(QtWidgets.QMainWindow):
         self.number_of_chunks_slider = self.findChild(QtWidgets.QSlider, "number_of_chunks_slider")
         self.polynomial_degree_slider = self.findChild(QtWidgets.QSlider, "polynomial_degree_slider")
         self.number_of_chunks_slider.setValue(1)
+<<<<<<< HEAD
         self.data_percentage_slider.setValue(100)
 
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider,self.polynomial_degree_slider]
 
+=======
+        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
+>>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
 
         # lables
         self.data_percentage_label = self.findChild(QtWidgets.QLabel, "data_percentage_label")
         self.number_of_chunks_lable = self.findChild(QtWidgets.QLabel, "number_of_chunks_lable")
         self.degree_lable = self.findChild(QtWidgets.QLabel, "degree_lable")
-        self.lables_arr =[ self.data_percentage_label, self.number_of_chunks_lable,
-                                self.degree_lable]
+        self.lables_arr = [self.data_percentage_label, self.number_of_chunks_lable,
+                           self.degree_lable]
         self.lable_3 = self.findChild(QtWidgets.QLabel, "label_3")
         # self.eq_lable =  self.findChild(QtWidgets.QLabel,"eq_label")
         #Buttons
@@ -83,8 +89,8 @@ class Main_window(QtWidgets.QMainWindow):
         self.poly_eq_box = self.findChild(QtWidgets.QComboBox,"poly_eq_box")
 
         # canves widget
-        self.canves  = MplCanvas()
-        self.graph_layout.addWidget(self.canves )
+        self.canves = MplCanvas()
+        self.graph_layout.addWidget(self.canves)
 
         # Latex widget
         self.latex_widget = latex_canves()
@@ -99,8 +105,9 @@ class Main_window(QtWidgets.QMainWindow):
         #   radio button(multiple)
         self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
         #   signal func arr
-        self.signals_func_arr = [lambda value , i =0:self.slider_updated(value,i),lambda value , i =1:self.slider_updated(value , i),
-                                 lambda value , i =2:self.slider_updated(value , i) ]
+        self.signals_func_arr = [lambda value, i=0: self.slider_updated(value, i),
+                                 lambda value, i=1: self.slider_updated(value, i),
+                                 lambda value, i=2: self.slider_updated(value, i)]
 
         for i in range(len(self.sliders_arr)):
             self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
@@ -111,22 +118,20 @@ class Main_window(QtWidgets.QMainWindow):
         self.error_map_button.clicked.connect(self.error_map_handler)
         self.error_map.ready.connect(self.toggleStartCancel)
 
-        self.thread_error_map = ThreadedErrorMap()
-        self.thread_error_map.currProgress.connect(self.update_progressbar)
+        self.threaded_error_map = ThreadedErrorMap(self.getError)
+        self.threaded_error_map.currProgress.connect(self.update_progressbar)
+        self.threaded_error_map.ready.connect(self.showErrorMap)
 
         # combo box signals
 
         self.poly_eq_box.activated.connect(self.poly_eq_box_selected)
         # self.openAction.triggered.connect(self.open_file())
 
-        #Data
-
-
+        # Data
 
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
         self.setting_chunks_mode()
-
 
     def setting_chunks_mode(self):
         if self.multiple_chunks_button.isChecked():
@@ -138,10 +143,8 @@ class Main_window(QtWidgets.QMainWindow):
             self.lable_3.hide()
             self.number_of_chunks_lable.hide()
 
-
-    def slider_updated(self, value,i):
+    def slider_updated(self, value, i):
         self.lables_arr[i].setText(str(value))
-
 
     def open_file(self):
         filename, _ = QtWidgets.QFileDialog.getOpenFileName()
@@ -153,30 +156,33 @@ class Main_window(QtWidgets.QMainWindow):
         print(self.x_scattered_points)
 
     def plot_data(self):
-            if self.plotting_flag:
-                self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o")
-                self.canves.draw()
-                self.plotting_flag = False
-                self.ploting_button.setText("Clear Scatterd Points")
-            else:
-                self.canves.axes.cla()
-                self.canves.axes.grid()
-                self.canves.draw()
-                self.plotting_flag = True
-                self.ploting_button.setText("Plot Scatterd Points")
+        if self.plotting_flag:
+            self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
+            self.canves.draw()
+            self.plotting_flag = False
+            self.ploting_button.setText("Clear Scatterd Points")
+        else:
+            self.canves.axes.cla()
+            self.canves.axes.grid()
+            self.canves.draw()
+            self.plotting_flag = True
+            self.ploting_button.setText("Plot Scatterd Points")
 
-    def getError(self,function_degree, no_of_chuncks):
+    def getError(self, function_degree, no_of_chuncks):
+        "Hello Guys"
         total_Residual = 0
         length_of_data = len(self.x_scattered_points)
         intervals = int(length_of_data / no_of_chuncks)
         for i in range(no_of_chuncks):
-            coefficients, residual, _, _, _ = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
-                                                         self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1],
-                                                         function_degree, full='true')
-            total_Residual = total_Residual + residual
-        return total_Residual / length_of_data
+            coefficients, residual, *_ = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
+                                                    self.y_scattered_points[
+                                                    0 + i * intervals:intervals * (i + 1) - 1],
+                                                    function_degree, full=True)
+            if len(residual) > 0:
+                total_Residual = total_Residual + residual[0]
+        return total_Residual
 
-    def fitting_datd(self, function_degree, no_of_chuncks):
+    def fitting_data(self, function_degree, no_of_chuncks):
         print("iside fiiting1")
         self.poly_box_adjustment()
         coefficient_list = []
@@ -186,7 +192,8 @@ class Main_window(QtWidgets.QMainWindow):
 
         for i in range(no_of_chuncks):
             coefficient = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
-                                     self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1], function_degree)
+                                     self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1],
+                                     function_degree)
             coefficient_list.append(coefficient)
         return coefficient_list
 
@@ -199,13 +206,13 @@ class Main_window(QtWidgets.QMainWindow):
         self.degree = self.polynomial_degree_slider.value()
         self.no_of_chuncks = self.number_of_chunks_slider.value()
         print("after slider")
-        self.coefficient_list = self.fitting_datd(self.degree, self.no_of_chuncks)
+        self.coefficient_list = self.fitting_data(self.degree, self.no_of_chuncks)
         print("after interpolation")
 
         xfit = np.linspace(0, self.x_scattered_points[-1], 1000)
         yfit = []
         x_cunk_boundry = []
-        intervals = int(len(xfit) /self.no_of_chuncks)
+        intervals = int(len(xfit) / self.no_of_chuncks)
 
         for i in range(self.no_of_chuncks):
             xchunk = xfit[i * intervals:intervals * (i + 1) - 1]
@@ -227,12 +234,17 @@ class Main_window(QtWidgets.QMainWindow):
         # max = max(self.y_scattered_points)
         # min = min(self.y_scattered_points)
         for i in range(len(yfit)):
-            if yfit[i] > max(self.y_scattered_points)or yfit[i] < min(self.y_scattered_points):
+            if yfit[i] > max(self.y_scattered_points) or yfit[i] < min(self.y_scattered_points):
                 yfit[i] = 0
         # print("coeeeeff ",self.coefficient_list )
         # polynomial_formela = self.print_poly(self.coefficient_list[0])
 
+<<<<<<< HEAD
         self.canves.axes.cla()
+=======
+
+        # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
+>>>>>>> 0b8720fe143c51e46d72f5f50730c340aebd369a
         self.canves.axes.plot(xfit,yfit,"--")
         self.canves.axes.legend(loc='upper right')
         self.canves.axes.set_xlim(0,max(self.x_scattered_points))
@@ -240,6 +252,7 @@ class Main_window(QtWidgets.QMainWindow):
 
     def toggleStartCancel(self):
         curr_text = self.error_map_button.text()
+        print(f"I'am {curr_text}")
         if curr_text == "Start":
             self.error_map_button.setText("Cancel")
             self.error_map_button.setStyleSheet("background-color: #930000;")
@@ -248,25 +261,26 @@ class Main_window(QtWidgets.QMainWindow):
             self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
 
     def error_map_handler(self):
-        print("--------------------------------------------")
-        print(self.getError(4,4))
-        print("--------------------------------------------")
 
         curr_text = self.error_map_button.text()
         if curr_text == "Start":
-            if not self.thread_error_map.is_running:
-                self.thread_error_map.start()
+            if not self.threaded_error_map.is_running:
+                self.threaded_error_map.start()
                 self.toggleStartCancel()
 
         if curr_text == "Cancel":
-            if self.thread_error_map.is_running:
-                self.thread_error_map.stop()
+            if self.threaded_error_map.is_running:
+                self.threaded_error_map.stop()
                 self.progressBar.setValue(0)
                 self.toggleStartCancel()
 
-    def update_progressbar(self,val):
+    def update_progressbar(self, val):
         self.progressBar.setValue(val)
-        self.thread_error_map.start()
+        self.threaded_error_map.start()
+
+    def showErrorMap(self, error_map_data):
+        self.error_map.plotErrorMap(error_map_data)
+
 
     def print_poly(self,list):
         polynomial = ''
