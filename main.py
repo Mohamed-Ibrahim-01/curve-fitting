@@ -23,7 +23,7 @@ class MplCanvas(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         super().__init__(self.fig)
         self.fig.tight_layout()
-        self.axes.grid()
+        # self.axes.grid()
 class latex_canves(FigureCanvas):
 
     def __init__(self, parent=None, width=1, height=2, dpi=100):
@@ -49,6 +49,7 @@ class Main_window(QtWidgets.QMainWindow):
         # graph layout
         self.error_map = ErrorMap()
         self.erro_map_layout.insertWidget(0, self.error_map)
+
 
         # Radio_butto_Layout
         # radio buttons
@@ -91,6 +92,7 @@ class Main_window(QtWidgets.QMainWindow):
         # canves widget
         self.canves = MplCanvas()
         self.graph_layout.addWidget(self.canves)
+        self.current_fitted_line,  = self.canves.axes.plot([],[])
 
         # Latex widget
         self.latex_widget = latex_canves()
@@ -158,13 +160,14 @@ class Main_window(QtWidgets.QMainWindow):
 
     def plot_data(self):
         if self.plotting_flag:
-            self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
+            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
             self.canves.draw()
             self.plotting_flag = False
             self.ploting_button.setText("Clear Scatterd Points")
         else:
-            self.canves.axes.cla()
-            self.canves.axes.grid()
+            # self.canves.axes.cla()
+            self.scatterd_points.remove()
+            # self.canves.axes.grid()
             self.canves.draw()
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
@@ -241,15 +244,18 @@ class Main_window(QtWidgets.QMainWindow):
         # polynomial_formela = self.print_poly(self.coefficient_list[0])
 
 
-        self.canves.axes.cla()
+        # self.canves.axes.cla()
 
 
         # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
+        print("befor setdata")
+        self.current_fitted_line.set_data(xfit,yfit)
+        print("after setdata")
 
-        self.canves.axes.plot(xfit,yfit,"--")
-        self.canves.axes.legend(loc='upper right')
+        # self.canves.axes.plot(xfit,yfit,"--")
+        # self.canves.axes.legend(loc='upper right')
         self.canves.axes.set_xlim(0,max(self.x_scattered_points))
-        self.canves.axes.grid()
+        # self.canves.axes.grid()
         self.canves.draw()
 
     def toggleStartCancel(self):
