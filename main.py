@@ -4,7 +4,7 @@ import numpy as np
 from PyQt5 import QtWidgets, uic
 import PyQt5.QtCore as qtc
 import qdarkstyle
-
+from sklearn.utils import shuffle
 from matplotlib import pyplot as plt
 
 matplotlib.use('Qt5Agg')
@@ -172,6 +172,9 @@ class Main_window(QtWidgets.QMainWindow):
             self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
             self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
 
+            self.max_xlim_point = max( self.x_scattered_points)
+            self.min_xlim_point = min( self.x_scattered_points)
+
     def plot_data(self):
         if self.plotting_flag:
             self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
@@ -223,20 +226,27 @@ class Main_window(QtWidgets.QMainWindow):
                 total_Residual = total_Residual + residual[0]
         return total_Residual
 
-    def fitting_data(self, function_degree, no_of_chuncks):
-        print("iside fiiting1")
-        self.poly_box_adjustment()
-        coefficient_list = []
-        length_of_data = len(self.x_scattered_points)
+    def fitting_data(self, function_degree, no_of_chunks):
+        NUM_OF_POINTS = 1000
 
-        intervals = length_of_data // no_of_chuncks
+        num_of_points_for_intervals = NUM_OF_POINTS // no_of_chunks
 
-        for i in range(no_of_chuncks):
-            coefficient = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
-                                     self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1],
-                                     function_degree)
-            coefficient_list.append(coefficient)
-        return coefficient_list
+        chunks_list_x = np.array_split(self.x_scattered_points, no_of_chunks)
+        chunks_list_y = np.array_split(self.y_scattered_points, no_of_chunks)
+
+        y_fit_list = []
+        x_fit_list = []
+        for i in range(no_of_chunks):
+            chunk_coeff = np.polyfit(chunks_list_x[i], chunks_list_y[i], function_degree)
+            chunk_modles = np.poly1d(chunk_coeff)
+            print(str(chunk_modles))
+            x_fit = np.linspace(chunks_list_x[i][0], chunks_list_x[i][-1], num_of_points_for_intervals)
+            x_fit_list.extend(x_fit)
+
+            y_fit = chunk_modles(x_fit)
+            y_fit_list.extend(y_fit)
+
+        return x_fit_list, y_fit_list
 
     def interpolation(self):
         self.latex_widget.axes2.cla()
@@ -247,49 +257,15 @@ class Main_window(QtWidgets.QMainWindow):
         self.degree = self.polynomial_degree_slider.value()
         self.no_of_chuncks = self.number_of_chunks_slider.value()
         print("after slider")
-        self.coefficient_list = self.fitting_data(self.degree, self.no_of_chuncks)
+        xfit , yfit = self.fitting_data(self.degree, self.no_of_chuncks)
         print("after interpolation")
 
-        xfit = np.linspace(0, self.x_scattered_points[-1], 1000)
-        yfit = []
-        x_cunk_boundry = []
-        intervals = int(len(xfit) / self.no_of_chuncks)
 
-        for i in range(self.no_of_chuncks):
-            xchunk = xfit[i * intervals:intervals * (i + 1) - 1]
-            chunk_fit = np.poly1d(self.coefficient_list[i])
-            chunk_fit = chunk_fit(xchunk)
-            chunk_fit[0:5] = 0
-            yfit.extend(chunk_fit)
-            x_cunk_boundry.append(xchunk[-1])
-            tt = intervals * (i + 1) - 1
-            # if(i == no_of_chuncks and intervals * (i + 1)<len(xfit)-1 ):
-            #     xchunk = xfit[(i+1) * intervals:]
-            #     yfit.extend(chunk_fit(xchunk))
-            #     x_cunk_boundry.append(xchunk[-1])
-        if (len(yfit) < len(xfit)):
-            lastx_chunk = xfit[len(yfit):]
-            last_chunk_fit = np.poly1d(self.coefficient_list[-1])
-            yfit.extend(last_chunk_fit(lastx_chunk))
-        print("after interpolation befor plotting")
-        # max = max(self.y_scattered_points)
-        # min = min(self.y_scattered_points)
-        for i in range(len(yfit)):
-            if yfit[i] > max(self.y_scattered_points) or yfit[i] < min(self.y_scattered_points):
-                yfit[i] = 0
-        # print("coeeeeff ",self.coefficient_list )
-        # polynomial_formela = self.print_poly(self.coefficient_list[0])
-
-        # self.canves.axes.cla()
-
-        # self.canves.axes.set_xlim(0,max(self.x_scattered_points))
         print("befor setdata")
         self.current_fitted_line.set_data(xfit,yfit)
         print("after setdata")
 
-        # self.canves.axes.plot(xfit,yfit,"--")
-        # self.canves.axes.legend(loc='upper right')
-        self.canves.axes.set_xlim(0,max(self.x_scattered_points))
+        self.canves.axes.set_xlim(self.min_xlim_point,self.max_xlim_point)
         # self.canves.axes.grid()
         self.canves.draw()
 
