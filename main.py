@@ -349,7 +349,7 @@ class Main_window(QtWidgets.QMainWindow):
                 term = str(coef)
                 polynomial += term
             elif coef != 0 and order != 0 and order != 1:
-                term = str(coef) + 'x^' + str(order)
+                term = str(coef) + 'x^' + "{" + str(order) + "}"
                 polynomial += term
             elif coef == 0:
                 pass
