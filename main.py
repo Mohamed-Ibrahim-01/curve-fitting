@@ -358,8 +358,19 @@ class Main_window(QtWidgets.QMainWindow):
         lenth = len(self.x_scattered_points)
         last_idx = int(lenth*(value/100)) -1
         print("percentage of data error")
-        self.x_scattered_points = self.x_scattered_points[0:last_idx]
-        self.y_scattered_points = self.y_scattered_points[0:last_idx]
+
+        x_shuffled, y_shuffled = shuffle(self.x_scattered_points, self.y_scattered_points)
+
+        x_shuffled = np.array(x_shuffled[0:last_idx])
+        y_shuffled = np.array(y_shuffled[0:last_idx])
+
+        sorted_idx = x_shuffled.argsort()
+
+        x_shuffled = x_shuffled[sorted_idx]
+        y_shuffled = y_shuffled[sorted_idx]
+
+        self.x_scattered_points = x_shuffled
+        self.y_scattered_points = y_shuffled
 
 
 
