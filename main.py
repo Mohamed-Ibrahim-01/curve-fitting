@@ -13,6 +13,9 @@ from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from ErrorMap import ErrorMap, ErrorMapWorker
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as navigation_toolbar
+
 from matplotlib.figure import Figure
 import sys
 
@@ -106,10 +109,17 @@ class Main_window(QtWidgets.QMainWindow):
         self.current_fitted_line,  = self.canves.axes.plot([],[])
 
         # Latex widget
+
         self.latex_widget = latex_canves()
+        self.toolbar = navigation_toolbar(self.latex_widget,self)
+
         self.latex_layout = self.findChild(QtWidgets.QHBoxLayout,"latex_layout")
         # self.latex_layout.set
-        self.latex_layout.addWidget(self.latex_widget)
+        self.canves_toolbar_layout =self.latex_layout.findChild(QtWidgets.QVBoxLayout,"canves_toolbar_layout")
+
+        self.canves_toolbar_layout.addWidget(self.latex_widget)
+        self.canves_toolbar_layout.addWidget(self.toolbar)
+
 
         # init:
         self.init_visability_with_radio_buttons()
@@ -228,16 +238,17 @@ class Main_window(QtWidgets.QMainWindow):
 
     def fitting_data(self, function_degree, no_of_chunks):
         NUM_OF_POINTS = 1000
-
+        self.poly_box_adjustment()
         num_of_points_for_intervals = NUM_OF_POINTS // no_of_chunks
 
         chunks_list_x = np.array_split(self.x_scattered_points, no_of_chunks)
         chunks_list_y = np.array_split(self.y_scattered_points, no_of_chunks)
-
+        self.coeff_chunks_list = []
         y_fit_list = []
         x_fit_list = []
         for i in range(no_of_chunks):
             chunk_coeff = np.polyfit(chunks_list_x[i], chunks_list_y[i], function_degree)
+            self.coeff_chunks_list.append(chunk_coeff)
             chunk_modles = np.poly1d(chunk_coeff)
             print(str(chunk_modles))
             x_fit = np.linspace(chunks_list_x[i][0], chunks_list_x[i][-1], num_of_points_for_intervals)
@@ -268,6 +279,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves.axes.set_xlim(self.min_xlim_point,self.max_xlim_point)
         # self.canves.axes.grid()
         self.canves.draw()
+
 
     def setStartButton(self):
         self.error_map_button.setText("Start")
@@ -343,7 +355,8 @@ class Main_window(QtWidgets.QMainWindow):
 
 
     def poly_eq_box_selected(self,index):
-        selected_eq_coefficients = self.coefficient_list[index]
+        # selected_eq_coefficients = self.coefficient_list[index]
+        selected_eq_coefficients = self.coeff_chunks_list[index]
         self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients,2))
 
         self.latex_widget.axes2.cla()
