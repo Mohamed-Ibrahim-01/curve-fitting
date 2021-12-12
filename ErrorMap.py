@@ -20,7 +20,6 @@ class ErrorMap(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         for spine in ['right', 'top', 'left', 'bottom']:
             self.axes.spines[spine].set_color('gray')
-        self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         self.progress = 0
         self.canceled = False
         super().__init__(self.fig)
@@ -35,9 +34,13 @@ class ErrorMap(FigureCanvas):
         self.axes.set_title('Error Map')
         self.axes.set_xlabel(x_axis)
         self.axes.set_ylabel(y_axis)
+        self.axes.set_xticks(np.arange(30))
+        self.axes.set_xticklabels(np.arange(1, 31), rotation=90)
+        self.axes.set_yticks(np.arange(30))
+        self.axes.set_yticklabels(np.arange(1, 31))
         if x_axis == "Polynomial Degree":
-            data = np.rot90(data)
-        error_map_plot = self.axes.imshow(data,cmap=color_map)
+            data = np.transpose(data)
+        error_map_plot = self.axes.imshow(data, cmap=color_map, origin='lower')
         divider = make_axes_locatable(self.axes)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         self.fig.colorbar(
