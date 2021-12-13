@@ -106,7 +106,7 @@ class Main_window(QtWidgets.QMainWindow):
         # canves widget
         self.canves = MplCanvas()
         self.graph_layout.addWidget(self.canves)
-        self.current_fitted_line,  = self.canves.axes.plot([],[])
+        self.current_fitted_line,  = self.canves.axes.plot([],[],'--')
 
         # Latex widget
 
@@ -184,6 +184,7 @@ class Main_window(QtWidgets.QMainWindow):
 
             self.max_xlim_point = max( self.x_scattered_points)
             self.min_xlim_point = min( self.x_scattered_points)
+
 
     def plot_data(self):
         if self.plotting_flag:
@@ -270,14 +271,22 @@ class Main_window(QtWidgets.QMainWindow):
         print("after slider")
         xfit , yfit = self.fitting_data(self.degree, self.no_of_chuncks)
         print("after interpolation")
+        # gitting error
+        abs_error = self.getError(self.degree,self.no_of_chuncks)
+        base_error = self.getError(0,1)
+        self.percentage_error = 100*abs_error/base_error
+
+
 
 
         print("befor setdata")
         self.current_fitted_line.set_data(xfit,yfit)
         print("after setdata")
+        self.current_fitted_line.set_label("Percentage Error: "+str(self.percentage_error)+" %")
 
         self.canves.axes.set_xlim(self.min_xlim_point,self.max_xlim_point)
         # self.canves.axes.grid()
+        self.canves.axes.legend()
         self.canves.draw()
 
 
