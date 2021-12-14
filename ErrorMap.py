@@ -83,13 +83,15 @@ class ErrorMapWorker(qtc.QObject):
     currProgress = qtc.pyqtSignal(int)
     ready = qtc.pyqtSignal(bool, object)
 
-    def __init__(self, calError, overlap):
+    def __init__(self, calError, z_axis, z_axis_value):
         super().__init__()
         self.error_map = ErrorMap()
         self.calErrorFunction = calError
         self.x_range, self.y_range = np.arange(30)+1, np.arange(30)+1
-        self.overlap = overlap
+        self.z_axis_value = z_axis_value
+        self.z_axis = z_axis
         self.error_map.progressChanged.connect(self.updateProgress)
+
 
     def updateProgress(self, progress):
         self.currProgress.emit(progress)
@@ -101,7 +103,7 @@ class ErrorMapWorker(qtc.QObject):
     @qtc.pyqtSlot()
     def run(self):
         error_map_data = self.error_map.calculateErrorMap(
-            self.calErrorFunction, self.x_range, self.y_range, self.overlap
+            self.calErrorFunction, self.x_range, self.y_range, self.z_axis_value
         )
         self.ready.emit(self.error_map.canceled, error_map_data)
 

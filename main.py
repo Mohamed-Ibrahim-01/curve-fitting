@@ -58,16 +58,28 @@ class Main_window(QtWidgets.QMainWindow):
         # graph layout
         self.error_map = ErrorMap()
         self.erro_map_layout.insertWidget(0, self.error_map)
-        self.x_axis = "Number of Chunks"
-        self.y_axis = "Polynomial Degree"
+
+        self.error_map_x_axis_text = "Number of Chunks"
+        self.error_map_y_axis_text = "Polynomial Degree"
+        self.error_map_z_axis_text = "Overlap"
 
 
         # Radio_butto_Layout
         # radio buttons
-        self.polydeg = self.findChild(QtWidgets.QRadioButton, "polydeg")
-        self.numchunk = self.findChild(QtWidgets.QRadioButton, "numchunk")
+
         self.one_chunk_button = self.findChild(QtWidgets.QRadioButton, "one_chunk")
         self.multiple_chunks_button = self.findChild(QtWidgets.QRadioButton, "mlutiple_chunks")
+
+        # ErrorMap
+        self.error_map_x_axis = self.findChild(QtWidgets.QGroupBox, "x_axis_groupBox")
+        self.error_map_y_axis = self.findChild(QtWidgets.QGroupBox, "y_axis_groupBox")
+        self.error_map_z_axis = self.findChild(QtWidgets.QGroupBox, "z_axis_layout")
+
+        self.error_map_x_axis_radio_btns = self.error_map_x_axis.findChildren(QtWidgets.QRadioButton)
+        self.error_map_y_axis_radio_btns = self.error_map_y_axis.findChildren(QtWidgets.QRadioButton)
+
+        self.error_map_radio_btns = self.error_map_x_axis_radio_btns.copy()
+        self.error_map_radio_btns.extend(self.error_map_y_axis_radio_btns)
 
         # grid layout
         # sliders
@@ -101,7 +113,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         # combo Box
         self.poly_eq_box = self.findChild(QtWidgets.QComboBox,"poly_eq_box")
-        self.overlap = self.findChild(QtWidgets.QSpinBox, "overlap")
+        self.z_axis_spinbox = self.findChild(QtWidgets.QSpinBox, "z_axis_spinbox")
 
         # canves widget
         self.canves = MplCanvas()
@@ -132,6 +144,7 @@ class Main_window(QtWidgets.QMainWindow):
                                  lambda value, i=1: self.slider_updated(value, i),
                                  lambda value, i=2: self.slider_updated(value, i)]
 
+
         for i in range(len(self.sliders_arr)):
             self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
 
@@ -149,14 +162,31 @@ class Main_window(QtWidgets.QMainWindow):
 
         # Data
 
-        self.polydeg.toggled.connect(self.change_axis)
+        for radio_btn in self.error_map_radio_btns:
+           radio_btn.toggled.connect(self.change_axis)
+
+    def get_error_map_axis(self, radio_btns):
+        for rb in radio_btns:
+            if rb.isChecked():
+                print(rb.text())
+                return rb.text()
+
+    def get_curr_x_axis(self):
+        return self.get_error_map_axis(self.error_map_x_axis_radio_btns)
+
+    def get_curr_y_axis(self):
+        return self.get_error_map_axis(self.error_map_y_axis_radio_btns)
+
+    def get_curr_z_axis(self):
+        selected_axis = {self.error_map_x_axis_text, self.error_map_y_axis_text}
+        if "Overlap" not in selected_axis: return "Overlap"
+        if "Polynomial Degree" not in selected_axis: return "Polynomial Degree"
+        if "Number of Chunks" not in selected_axis: return "Number of Chunks"
+
     def change_axis(self):
-        if self.polydeg.isChecked():
-            self.x_axis = "Polynomial Degree"
-            self.y_axis = "Number of Chunks"
-        else:
-            self.y_axis = "Polynomial Degree"
-            self.x_axis = "Number of Chunks"
+        self.error_map_x_axis_text = self.get_curr_x_axis()
+        self.error_map_y_axis_text = self.get_curr_y_axis()
+        self.error_map_z_axis_text = self.get_curr_z_axis()
 
     def init_visability_with_radio_buttons(self):
         self.one_chunk_button.setChecked(True)
@@ -200,7 +230,18 @@ class Main_window(QtWidgets.QMainWindow):
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
 
-    def getErrorOverlap(self, function_degree,no_of_chuncks,overlapping):
+    def calErrorFunction(self, x, y, z):
+        if self.error_map_z_axis_text == "Overlap":
+            print(self.error_map_z_axis_text)
+            return self.getErrorOverlap(x, y, z)
+        if self.error_map_z_axis_text == "Polynomial Degree":
+            print(self.error_map_z_axis_text)
+            return self.getErrorOverlap(z, y, x)
+        else:
+            print(self.error_map_z_axis_text)
+            return self.getErrorOverlap(x, z, y)
+
+    def getErrorOverlap(self, function_degree, no_of_chuncks, overlapping):
         total_Residual = 0
         length_of_data = len(self.x_scattered_points)
         intervals = int(length_of_data / no_of_chuncks)
@@ -307,8 +348,8 @@ class Main_window(QtWidgets.QMainWindow):
 
         curr_text = self.error_map_button.text()
         if curr_text == "Start":
-            overlap_value = self.overlap.value()
-            self.error_map_worker = ErrorMapWorker(self.getErrorOverlap, overlap_value)
+            z_axis_value = self.z_axis_spinbox.value()
+            self.error_map_worker = ErrorMapWorker(self.calErrorFunction, self.error_map_z_axis_text, z_axis_value)
             self.error_map_thread = qtc.QThread()
             self.error_map_worker.currProgress.connect(self.update_progressbar)
             self.error_map_worker.moveToThread(self.error_map_thread)
@@ -329,7 +370,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.error_map_thread.quit()
         if not canceled :
             self.error_map_plot = self.error_map.plotErrorMap(
-                error_map_data, x_axis=self.x_axis, y_axis=self.y_axis
+                error_map_data, x_axis=self.error_map_x_axis_text, y_axis=self.error_map_y_axis_text
             )
         self.setStartButton()
         self.progressBar.setValue(0)

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>894</width>
+    <width>1157</width>
     <height>543</height>
    </rect>
   </property>
@@ -175,8 +175,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>894</width>
-     <height>21</height>
+     <width>1157</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -190,8 +190,8 @@
   <widget class="QDockWidget" name="dockWidget">
    <property name="minimumSize">
     <size>
-     <width>403</width>
-     <height>128</height>
+     <width>730</width>
+     <height>240</height>
     </size>
    </property>
    <property name="features">
@@ -235,59 +235,114 @@
            </property>
           </widget>
          </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="error_map_setting_layout">
+       <item>
+        <widget class="QGroupBox" name="x_axis_groupBox">
+         <property name="title">
+          <string>X axis :</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="x_overlap">
+            <property name="text">
+             <string>Overlap</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="x_polydeg">
+            <property name="text">
+             <string>Polynomial Degree</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="x_numchunk">
+            <property name="text">
+             <string>Number of Chunks</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="y_axis_groupBox">
+         <property name="title">
+          <string>Y axis :</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QRadioButton" name="y_overlap">
+            <property name="text">
+             <string>Overlap</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="y_polydeg">
+            <property name="text">
+             <string>Polynomial Degree</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="y_numchunk">
+            <property name="text">
+             <string>Number of Chunks</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="z_axis_layout">
          <item>
-          <widget class="QSpinBox" name="overlap">
+          <widget class="QLabel" name="z_axis_label">
+           <property name="styleSheet">
+            <string notr="true">font: 10pt &quot;Sans Serif&quot;;
+font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>Z axis :</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="z_axis_spinbox">
+           <property name="minimum">
+            <number>1</number>
+           </property>
            <property name="maximum">
             <number>100</number>
            </property>
           </widget>
          </item>
         </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="styleSheet">
-          <string notr="true">font: 10pt &quot;Sans Serif&quot;;
-font-weight: bold;</string>
-         </property>
-         <property name="text">
-          <string>X axis :</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="numchunk">
-         <property name="text">
-          <string>Number of Chunks</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="polydeg">
-         <property name="text">
-          <string>Polynomial Degree</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </item>
