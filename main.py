@@ -1,35 +1,32 @@
-import matplotlib as matplotlib
+import sys
 import pandas as pd
 import numpy as np
-from PyQt5 import QtWidgets, uic
-import PyQt5.QtCore as qtc
 import qdarkstyle
+import matplotlib as matplotlib
+from PyQt5 import QtWidgets, uic
 from sklearn.utils import shuffle
-from matplotlib import pyplot as plt
 
 matplotlib.use('Qt5Agg')
-from matplotlib.pyplot import isinteractive
 from PyQt5 import QtCore, QtWidgets
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from ErrorMap import ErrorMap, ErrorMapWorker
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as navigation_toolbar
 
 from matplotlib.figure import Figure
-import sys
 
 
 class MplCanvas(FigureCanvas):
 
     def __init__(self, parent=None, width=0.1, height=0.01, dpi=100):
-        self.fig =Figure()
+        self.fig = Figure()
         self.axes = self.fig.add_subplot(111)
         for spine in ['right', 'top', 'left', 'bottom']:
             self.axes.spines[spine].set_color('gray')
         self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig)
         self.fig.tight_layout()
+
 
 class latex_canves(FigureCanvas):
 
@@ -40,6 +37,7 @@ class latex_canves(FigureCanvas):
             self.axes2.spines[spine].set_visible(False)
         self.axes2.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig2)
+
 
 class Main_window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -56,30 +54,15 @@ class Main_window(QtWidgets.QMainWindow):
         # print(type(self.openAction))
 
         # graph layout
-        self.error_map = ErrorMap()
-        self.erro_map_layout.insertWidget(0, self.error_map)
-
-        self.error_map_x_axis_text = "Number of Chunks"
-        self.error_map_y_axis_text = "Polynomial Degree"
-        self.error_map_z_axis_text = "Overlap"
-
+        self.error_map = ErrorMap(self.getErrorOverlap)
+        self.splitter.findChild(QtWidgets.QVBoxLayout, "error_map_area")
+        self.error_map_area.addWidget(self.error_map)
 
         # Radio_butto_Layout
         # radio buttons
 
         self.one_chunk_button = self.findChild(QtWidgets.QRadioButton, "one_chunk")
         self.multiple_chunks_button = self.findChild(QtWidgets.QRadioButton, "mlutiple_chunks")
-
-        # ErrorMap
-        self.error_map_x_axis = self.findChild(QtWidgets.QGroupBox, "x_axis_groupBox")
-        self.error_map_y_axis = self.findChild(QtWidgets.QGroupBox, "y_axis_groupBox")
-        self.error_map_z_axis = self.findChild(QtWidgets.QGroupBox, "z_axis_layout")
-
-        self.error_map_x_axis_radio_btns = self.error_map_x_axis.findChildren(QtWidgets.QRadioButton)
-        self.error_map_y_axis_radio_btns = self.error_map_y_axis.findChildren(QtWidgets.QRadioButton)
-
-        self.error_map_radio_btns = self.error_map_x_axis_radio_btns.copy()
-        self.error_map_radio_btns.extend(self.error_map_y_axis_radio_btns)
 
         # grid layout
         # sliders
@@ -90,8 +73,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         self.data_percentage_slider.setValue(100)
 
-        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider,self.polynomial_degree_slider]
-
+        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
 
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
         # lables
@@ -106,90 +88,46 @@ class Main_window(QtWidgets.QMainWindow):
                            self.degree_lable]
         self.lable_3 = self.findChild(QtWidgets.QLabel, "label_3")
         # self.eq_lable =  self.findChild(QtWidgets.QLabel,"eq_label")
-        #Buttons
-        self.ploting_button = self.findChild(QtWidgets.QPushButton,"start_button")
+        # Buttons
+        self.ploting_button = self.findChild(QtWidgets.QPushButton, "start_button")
         self.plotting_flag = True
-        self.fitting_button = self.findChild(QtWidgets.QPushButton,"fitting_button")
+        self.fitting_button = self.findChild(QtWidgets.QPushButton, "fitting_button")
 
         # combo Box
-        self.poly_eq_box = self.findChild(QtWidgets.QComboBox,"poly_eq_box")
-        self.z_axis_spinbox = self.findChild(QtWidgets.QSpinBox, "z_axis_spinbox")
+        self.poly_eq_box = self.findChild(QtWidgets.QComboBox, "poly_eq_box")
 
         # canves widget
         self.canves = MplCanvas()
         self.graph_layout.addWidget(self.canves)
-        self.current_fitted_line,  = self.canves.axes.plot([],[],'--')
+        self.current_fitted_line, = self.canves.axes.plot([], [], '--')
 
         # Latex widget
 
         self.latex_widget = latex_canves()
-        self.toolbar = navigation_toolbar(self.latex_widget,self)
+        self.toolbar = navigation_toolbar(self.latex_widget, self)
 
-        self.latex_layout = self.findChild(QtWidgets.QHBoxLayout,"latex_layout")
-        # self.latex_layout.set
-        self.canves_toolbar_layout =self.latex_layout.findChild(QtWidgets.QVBoxLayout,"canves_toolbar_layout")
+        self.latex_layout = self.findChild(QtWidgets.QHBoxLayout, "latex_layout")
+        self.canves_toolbar_layout = self.latex_layout.findChild(QtWidgets.QVBoxLayout, "canves_toolbar_layout")
 
         self.canves_toolbar_layout.addWidget(self.latex_widget)
         self.canves_toolbar_layout.addWidget(self.toolbar)
 
+        self.init_visibility_with_radio_buttons()
 
-        # init:
-        self.init_visability_with_radio_buttons()
-
-        # signals
-        #   radio button(multiple)
         self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
-        #   signal func arr
         self.signals_func_arr = [lambda value, i=0: self.slider_updated(value, i),
                                  lambda value, i=1: self.slider_updated(value, i),
                                  lambda value, i=2: self.slider_updated(value, i)]
-
 
         for i in range(len(self.sliders_arr)):
             self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
 
         self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
-        # Plot buttons signal
         self.ploting_button.clicked.connect(self.plot_data)
         self.fitting_button.clicked.connect(self.interpolation)
-        self.error_map_button.clicked.connect(self.error_map_handler)
-
-
-        # combo box signals
-
         self.poly_eq_box.activated.connect(self.poly_eq_box_selected)
-        # self.openAction.triggered.connect(self.open_file())
 
-        # Data
-
-        for radio_btn in self.error_map_radio_btns:
-           radio_btn.toggled.connect(self.change_axis)
-
-    def get_error_map_axis(self, radio_btns):
-        for rb in radio_btns:
-            if rb.isChecked():
-                print(rb.text())
-                return rb.text()
-
-    def get_curr_x_axis(self):
-        return self.get_error_map_axis(self.error_map_x_axis_radio_btns)
-
-    def get_curr_y_axis(self):
-        return self.get_error_map_axis(self.error_map_y_axis_radio_btns)
-
-    def get_curr_z_axis(self):
-        selected_axis = {self.error_map_x_axis_text, self.error_map_y_axis_text}
-        if "Overlap" not in selected_axis: return "Overlap"
-        if "Polynomial Degree" not in selected_axis: return "Polynomial Degree"
-        if "Number of Chunks" not in selected_axis: return "Number of Chunks"
-
-    def change_axis(self):
-        self.error_map_x_axis_text = self.get_curr_x_axis()
-        self.error_map_y_axis_text = self.get_curr_y_axis()
-        self.error_map_z_axis_text = self.get_curr_z_axis()
-
-    def init_visability_with_radio_buttons(self):
-        self.one_chunk_button.setChecked(True)
+    def init_visibility_with_radio_buttons(self):
         self.setting_chunks_mode()
 
     def setting_chunks_mode(self):
@@ -212,13 +150,13 @@ class Main_window(QtWidgets.QMainWindow):
             self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
             self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
 
-            self.max_xlim_point = max( self.x_scattered_points)
-            self.min_xlim_point = min( self.x_scattered_points)
-
+            self.max_xlim_point = max(self.x_scattered_points)
+            self.min_xlim_point = min(self.x_scattered_points)
 
     def plot_data(self):
         if self.plotting_flag:
-            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o", markersize=2)
+            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o",
+                                                          markersize=2)
             self.canves.draw()
             self.plotting_flag = False
             self.ploting_button.setText("Clear Scatterd Points")
@@ -230,39 +168,36 @@ class Main_window(QtWidgets.QMainWindow):
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
 
-    def calErrorFunction(self, x, y, z):
-        if self.error_map_z_axis_text == "Overlap":
-            print(self.error_map_z_axis_text)
-            return self.getErrorOverlap(x, y, z)
-        if self.error_map_z_axis_text == "Polynomial Degree":
-            print(self.error_map_z_axis_text)
-            return self.getErrorOverlap(z, y, x)
-        else:
-            print(self.error_map_z_axis_text)
-            return self.getErrorOverlap(x, z, y)
-
     def getErrorOverlap(self, function_degree, no_of_chuncks, overlapping):
         total_Residual = 0
         length_of_data = len(self.x_scattered_points)
         intervals = int(length_of_data / no_of_chuncks)
         for i in range(no_of_chuncks):
             if i == 0:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals:intervals*(i+1)-1],self.y_scattered_points[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
+                coefficients, residual, _, _, _ = np.polyfit(
+                    self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
+                    self.y_scattered_points[0 + i * intervals:intervals * (i + 1) - 1], function_degree, full='true')
                 if len(residual) > 0:
                     total_Residual = total_Residual + residual[0]
 
-            elif i<no_of_chuncks-1:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))]
-                ,self.y_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))],function_degree,full='true')
+            elif i < no_of_chuncks - 1:
+                coefficients, residual, _, _, _ = np.polyfit(self.x_scattered_points[i * intervals - int(
+                    i * intervals * (overlapping / 100)):intervals * (i + 1) - 1 - int(
+                    i * intervals * (overlapping / 100))]
+                                                             , self.y_scattered_points[i * intervals - int(
+                        i * intervals * (overlapping / 100)):intervals * (i + 1) - 1 - int(
+                        i * intervals * (overlapping / 100))], function_degree, full='true')
                 if len(residual) > 0:
                     total_Residual = total_Residual + residual[0]
 
             else:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data]
-                ,self.y_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data],function_degree,full='true')
+                coefficients, residual, _, _, _ = np.polyfit(self.x_scattered_points[intervals * (i) - 1 - int(
+                    (i - 1) * intervals * (overlapping / 100)):length_of_data]
+                                                             , self.y_scattered_points[intervals * (i) - 1 - int(
+                        (i - 1) * intervals * (overlapping / 100)):length_of_data], function_degree, full='true')
                 if len(residual) > 0:
                     total_Residual = total_Residual + residual[0]
-        return total_Residual/np.sqrt(length_of_data)
+        return total_Residual / np.sqrt(length_of_data)
 
     def getError(self, function_degree, no_of_chuncks):
         "Hello Guys"
@@ -310,73 +245,24 @@ class Main_window(QtWidgets.QMainWindow):
         self.degree = self.polynomial_degree_slider.value()
         self.no_of_chuncks = self.number_of_chunks_slider.value()
         print("after slider")
-        xfit , yfit = self.fitting_data(self.degree, self.no_of_chuncks)
+        xfit, yfit = self.fitting_data(self.degree, self.no_of_chuncks)
         print("after interpolation")
         # gitting error
-        abs_error = self.getError(self.degree,self.no_of_chuncks)
-        base_error = self.getError(0,1)
-        self.percentage_error = 100*abs_error/base_error
-
-
-
+        abs_error = self.getError(self.degree, self.no_of_chuncks)
+        base_error = self.getError(0, 1)
+        self.percentage_error = 100 * abs_error / base_error
 
         print("befor setdata")
-        self.current_fitted_line.set_data(xfit,yfit)
+        self.current_fitted_line.set_data(xfit, yfit)
         print("after setdata")
-        self.current_fitted_line.set_label("Percentage Error: "+str(self.percentage_error)+" %")
+        self.current_fitted_line.set_label("Percentage Error: " + str(self.percentage_error) + " %")
 
-        self.canves.axes.set_xlim(self.min_xlim_point,self.max_xlim_point)
+        self.canves.axes.set_xlim(self.min_xlim_point, self.max_xlim_point)
         # self.canves.axes.grid()
         self.canves.axes.legend()
         self.canves.draw()
 
-
-    def setStartButton(self):
-        self.error_map_button.setText("Start")
-        self.error_map_button.setStyleSheet("background-color: rgb(0, 54, 125);")
-
-    def setCancelButton(self):
-        self.error_map_button.setText("Cancel")
-        self.error_map_button.setStyleSheet("background-color: #930000;")
-
-    def toggleStartCancel(self):
-        curr_text = self.error_map_button.text()
-        if curr_text == "Start": self.setCancelButton()
-        else: self.setStartButton()
-
-    def error_map_handler(self):
-
-        curr_text = self.error_map_button.text()
-        if curr_text == "Start":
-            z_axis_value = self.z_axis_spinbox.value()
-            self.error_map_worker = ErrorMapWorker(self.calErrorFunction, self.error_map_z_axis_text, z_axis_value)
-            self.error_map_thread = qtc.QThread()
-            self.error_map_worker.currProgress.connect(self.update_progressbar)
-            self.error_map_worker.moveToThread(self.error_map_thread)
-            self.error_map_worker.ready.connect(self.showErrorMap)
-            self.error_map_thread.started.connect(self.error_map_worker.run)
-            self.error_map_thread.start()
-            self.setCancelButton()
-
-        if curr_text == "Cancel":
-            self.error_map_worker.stop()
-            self.setStartButton()
-            self.error_map.clear()
-
-    def update_progressbar(self, val):
-        self.progressBar.setValue(val)
-
-    def showErrorMap(self,canceled, error_map_data):
-        self.error_map_thread.quit()
-        if not canceled :
-            self.error_map_plot = self.error_map.plotErrorMap(
-                error_map_data, x_axis=self.error_map_x_axis_text, y_axis=self.error_map_y_axis_text
-            )
-        self.setStartButton()
-        self.progressBar.setValue(0)
-
-
-    def print_poly(self,list):
+    def print_poly(self, list):
         polynomial = ''
         order = len(list) - 1
         for coef in list:
@@ -401,25 +287,24 @@ class Main_window(QtWidgets.QMainWindow):
     def poly_box_adjustment(self):
         self.poly_eq_box.clear()
         for i in range(self.no_of_chuncks):
-            self.poly_eq_box.addItem("Chunk : "+str(i+1))
+            self.poly_eq_box.addItem("Chunk : " + str(i + 1))
 
-
-    def poly_eq_box_selected(self,index):
+    def poly_eq_box_selected(self, index):
         # selected_eq_coefficients = self.coefficient_list[index]
         selected_eq_coefficients = self.coeff_chunks_list[index]
-        self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients,2))
+        self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients, 2))
 
         self.latex_widget.axes2.cla()
         self.latex_widget.draw()
-        self.latex_widget.axes2.text(0, 5, "$"+self.polynomial_eq+"$")
+        self.latex_widget.axes2.text(0, 5, "$" + self.polynomial_eq + "$")
         self.latex_widget.axes2.axis([0, 10, 0, 10])
         self.latex_widget.draw()
 
-    def change_percentage_of_fitted_data(self,value):
+    def change_percentage_of_fitted_data(self, value):
         self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
         self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
         lenth = len(self.x_scattered_points)
-        last_idx = int(lenth*(value/100)) -1
+        last_idx = int(lenth * (value / 100)) - 1
         print("percentage of data error")
 
         x_shuffled, y_shuffled = shuffle(self.x_scattered_points, self.y_scattered_points)
@@ -434,8 +319,6 @@ class Main_window(QtWidgets.QMainWindow):
 
         self.x_scattered_points = x_shuffled
         self.y_scattered_points = y_shuffled
-
-
 
 
 def main():
