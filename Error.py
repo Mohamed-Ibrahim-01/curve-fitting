@@ -1,27 +1,33 @@
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
-length_of_data=1000
-loaded_ECG_data = pd.read_csv("emg.csv")
-filtered_ECG_mV = loaded_ECG_data['filtered_ECG_mV']
-time = loaded_ECG_data['time_sec']
+def _calcError(x_points, y_points, degree):
+    if (len(x_points) != len(y_points)):
+        return -1
+    coefficients, residual, *_ = np.polyfit(x_points, y_points, degree, full=True)
+    chunk_models = np.poly1d(coefficients)
+    fitted = chunk_models(x_points)
+    error = (100*y_points - 100*fitted)**2
+    return np.sum(error)
 
-def getError(function_degree,no_of_chuncks,overlapping):
-    total_Residual = 0
-    intervals = int(length_of_data/no_of_chuncks)
-    for i in range(no_of_chuncks):
-        if i == 0:
-            coefficients, residual, _, _, _  = np.polyfit(time[i*intervals:intervals*(i+1)-1],filtered_ECG_mV[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
-            total_Residual = total_Residual + residual
+def _getOverlappedChunk(chunk_size, overlap, chunk_order):
+    start, end = 0, chunk_size-1
+    if overlap > 1 :
+        overlap = overlap/100
+    step = int((1-overlap)*chunk_size)
+    shift = chunk_order*step
+    return start+shift, end+shift
 
-        elif i<no_of_chuncks-1:
-            coefficients, residual, _, _, _  = np.polyfit(time[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))]
-            ,filtered_ECG_mV[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))],function_degree,full='true')
-            total_Residual = total_Residual + residual
+def getError(degree, num_of_chunks, overlap, x_data, y_data):
+    if (len(x_data) != len(y_data)):
+        return -1
+    total_error = 0
+    chunk_size = int(len(x_data)/num_of_chunks)
+    for i in range(num_of_chunks):
+        start, end = _getOverlappedChunk(chunk_size, overlap, i)
+        if i == num_of_chunks-1:
+            end = len(x_data)-1
+        x_points = x_data[start: end]
+        y_points = y_data[start: end]
+        total_error += _calcError(x_points, y_points, degree)
+    return total_error
 
-        else:
-            coefficients, residual, _, _, _  = np.polyfit(time[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data]
-            ,filtered_ECG_mV[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data],function_degree,full='true')
-            total_Residual = total_Residual + residual
-    return total_Residual/np.sqrt(length_of_data)
