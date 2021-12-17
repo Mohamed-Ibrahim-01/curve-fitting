@@ -3,7 +3,7 @@ import numpy as np
 def _calcError(x_points, y_points, degree):
     if (len(x_points) != len(y_points)):
         return -1
-    coefficients, residual, *_ = np.polyfit(x_points, y_points, degree, full=True)
+    coefficients, *_ = np.polyfit(x_points, y_points, degree, full=True)
     chunk_models = np.poly1d(coefficients)
     fitted = chunk_models(x_points)
     error = (100*y_points - 100*fitted)**2
