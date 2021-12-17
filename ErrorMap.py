@@ -41,6 +41,7 @@ class ErrorMap(qtw.QWidget):
         self.x_axis_range = np.arange(30)+1
         self.y_axis_range = np.arange(30)+1
         self.calc_error = calc_error
+        self.cleared = True
 
         self.canvas = ErrorMapCanvas()
         self.layout().insertWidget(0, self.canvas)
@@ -48,6 +49,7 @@ class ErrorMap(qtw.QWidget):
         self.error_map_y_axis = self.findChild(qtw.QGroupBox, "y_axis_groupBox")
         self.error_map_z_axis = self.findChild(qtw.QGroupBox, "z_axis_layout")
         self.z_axis_spinbox = self.findChild(qtw.QSpinBox, "z_axis_spinbox")
+        self.color_map_combo = self.findChild(qtw.QComboBox, "color_map")
 
         self.error_map_x_axis_radio_btns = self.error_map_x_axis.findChildren(qtw.QRadioButton)
         self.error_map_y_axis_radio_btns = self.error_map_y_axis.findChildren(qtw.QRadioButton)
@@ -56,15 +58,28 @@ class ErrorMap(qtw.QWidget):
         self.error_map_radio_btns.extend(self.error_map_y_axis_radio_btns)
 
         self.error_map_button.clicked.connect(self.errorMapHandler)
+        self.color_map_combo.currentIndexChanged.connect(self.updatePalate)
         for radio_btn in self.error_map_radio_btns:
             radio_btn.toggled.connect(self._changeAxis)
 
+    def updatePalate(self):
+        curr_palate = self.color_map_combo.currentText()
+        if not self.cleared:
+            self.error_map_plot.set_cmap(curr_palate)
+            self.canvas.color_bar.mappable.set_cmap(curr_palate)
+            self.canvas.draw()
+
     def showErrorMap(self, canceled, error_map_data):
         self.error_map_thread.quit()
+        color_map = self.color_map_combo.currentText()
         if not canceled:
             self.error_map_plot = self.canvas.plot(
-                error_map_data, x_axis=self.error_map_x_axis_text, y_axis=self.error_map_y_axis_text
+                error_map_data,
+                x_axis=self.error_map_x_axis_text,
+                y_axis=self.error_map_y_axis_text,
+                color_map=color_map
             )
+        self.cleared = False
         self.setStartButton()
         self.progressBar.setValue(0)
 
@@ -158,6 +173,7 @@ class ErrorMapCanvas(FigureCanvas):
             self.axes.spines[spine].set_color('gray')
             self.cax.spines[spine].set_color('gray')
 
+        self.color_bar = None
         self.progress = 0
         self.canceled = False
         super().__init__(self.fig)
@@ -174,7 +190,7 @@ class ErrorMapCanvas(FigureCanvas):
             data = np.transpose(data)
 
     def _showColorBar(self, color_map):
-        self.fig.colorbar(
+        self.color_bar = self.fig.colorbar(
             cm.ScalarMappable(norm=colors.Normalize(), cmap=color_map), ax=self.axes, cax=self.cax
         )
 
@@ -193,6 +209,7 @@ class ErrorMapCanvas(FigureCanvas):
         return error_map_plot
 
     def clear(self):
+        self.cleared = True
         self.axes.cla()
         self.cax.cla()
         self.draw()
