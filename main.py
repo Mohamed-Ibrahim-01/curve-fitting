@@ -116,12 +116,19 @@ class Main_window(QtWidgets.QMainWindow):
         self.init_visibility_with_radio_buttons()
 
         self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
-        self.signals_func_arr = [lambda value, i=0: self.slider_updated(value, i),
+        self.signals_lables_arr = [lambda value, i=0: self.slider_updated(value, i),
                                  lambda value, i=1: self.slider_updated(value, i),
                                  lambda value, i=2: self.slider_updated(value, i)]
 
+        self.signals_interpolation_arr = [lambda : self.interpolation(),
+                                 lambda : self.interpolation(),
+                                 lambda : self.interpolation()]
+
         for i in range(len(self.sliders_arr)):
-            self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
+            self.sliders_arr[i].valueChanged.connect(self.signals_lables_arr[i])
+
+        for i in range(len(self.sliders_arr)):
+            self.sliders_arr[i].valueChanged.connect(self.signals_interpolation_arr[i])
 
         self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
         self.ploting_button.clicked.connect(self.plot_data)
@@ -156,7 +163,7 @@ class Main_window(QtWidgets.QMainWindow):
 
     def plot_data(self):
         if self.plotting_flag:
-            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points,
+            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points,"o",
                                                           markersize=2)
             self.canves.draw()
             self.plotting_flag = False
