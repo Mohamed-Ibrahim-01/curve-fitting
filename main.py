@@ -27,7 +27,7 @@ class MplCanvas(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         for spine in ['right', 'top', 'left', 'bottom']:
             self.axes.spines[spine].set_color('gray')
-        self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+        # self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig)
         self.fig.tight_layout()
 
@@ -235,6 +235,7 @@ class Main_window(QtWidgets.QMainWindow):
                                                     function_degree, full=True)
             if len(residual) > 0:
                 total_Residual = total_Residual + residual[0]
+
         return total_Residual
 
     def fitting_data(self, function_degree, no_of_chunks):
@@ -379,7 +380,7 @@ class Main_window(QtWidgets.QMainWindow):
         self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
         lenth = len(self.x_scattered_points)
         last_idx = int(lenth*(value/100)) -1
-        print("percentage of data error")
+
 
         x_shuffled, y_shuffled = shuffle(self.x_scattered_points, self.y_scattered_points)
 
