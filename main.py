@@ -24,7 +24,7 @@ class MplCanvas(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         for spine in ['right', 'top', 'left', 'bottom']:
             self.axes.spines[spine].set_color('gray')
-        self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+        # self.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
         super().__init__(self.fig)
         self.fig.tight_layout()
 
@@ -116,12 +116,19 @@ class Main_window(QtWidgets.QMainWindow):
         self.init_visibility_with_radio_buttons()
 
         self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
-        self.signals_func_arr = [lambda value, i=0: self.slider_updated(value, i),
+        self.signals_lables_arr = [lambda value, i=0: self.slider_updated(value, i),
                                  lambda value, i=1: self.slider_updated(value, i),
                                  lambda value, i=2: self.slider_updated(value, i)]
 
+        self.signals_interpolation_arr = [lambda : self.interpolation(),
+                                 lambda : self.interpolation(),
+                                 lambda : self.interpolation()]
+
         for i in range(len(self.sliders_arr)):
-            self.sliders_arr[i].valueChanged.connect(self.signals_func_arr[i])
+            self.sliders_arr[i].valueChanged.connect(self.signals_lables_arr[i])
+
+        for i in range(len(self.sliders_arr)):
+            self.sliders_arr[i].valueChanged.connect(self.signals_interpolation_arr[i])
 
         self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
         self.ploting_button.clicked.connect(self.plot_data)
@@ -156,7 +163,7 @@ class Main_window(QtWidgets.QMainWindow):
 
     def plot_data(self):
         if self.plotting_flag:
-            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points, "o",
+            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points,"o",
                                                           markersize=2)
             self.canves.draw()
             self.plotting_flag = False
@@ -169,6 +176,45 @@ class Main_window(QtWidgets.QMainWindow):
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
 
+
+    def getErrorOverlap(self, function_degree,no_of_chuncks,overlapping):
+        total_Residual = 0
+        length_of_data = len(self.x_scattered_points)
+        intervals = int(length_of_data / no_of_chuncks)
+        for i in range(no_of_chuncks):
+            if i == 0:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals:intervals*(i+1)-1],self.y_scattered_points[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+
+            elif i<no_of_chuncks-1:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))]
+                ,self.y_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+
+            else:
+                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data]
+                ,self.y_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data],function_degree,full='true')
+                if len(residual) > 0:
+                    total_Residual = total_Residual + residual[0]
+        return total_Residual/np.sqrt(length_of_data)
+
+    def getError(self, function_degree, no_of_chuncks):
+        "Hello Guys"
+        total_Residual = 0
+        length_of_data = len(self.x_scattered_points)
+        intervals = int(length_of_data / no_of_chuncks)
+        for i in range(no_of_chuncks):
+            coefficients, residual, *_ = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
+                                                    self.y_scattered_points[
+                                                    0 + i * intervals:intervals * (i + 1) - 1],
+                                                    function_degree, full=True)
+            if len(residual) > 0:
+                total_Residual = total_Residual + residual[0]
+
+        return total_Residual
+
     def getErrorOverlap(self, degree, num_of_chunks, overlap):
         return Error.getError(
             degree, num_of_chunks, overlap, self.x_scattered_points, self.y_scattered_points
@@ -179,6 +225,7 @@ class Main_window(QtWidgets.QMainWindow):
         return Error.getError(
             degree, num_of_chunks, 0, self.x_scattered_points, self.y_scattered_points
         )
+
 
     def fitting_data(self, function_degree, no_of_chunks):
         NUM_OF_POINTS = 1000
@@ -271,8 +318,10 @@ class Main_window(QtWidgets.QMainWindow):
         self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
         self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
         lenth = len(self.x_scattered_points)
+
         last_idx = int(lenth * (value / 100)) - 1
         print("percentage of data error")
+
 
         x_shuffled, y_shuffled = shuffle(self.x_scattered_points, self.y_scattered_points)
 
