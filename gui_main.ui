@@ -36,7 +36,20 @@
              <enum>QLayout::SetFixedSize</enum>
             </property>
             <item>
-             <widget class="QSpinBox" name="equation_chooser"/>
+             <widget class="QComboBox" name="poly_eq_box">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
              <layout class="QVBoxLayout" name="canves_toolbar_layout"/>
