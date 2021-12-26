@@ -5,6 +5,7 @@ import PyQt5.QtWidgets as qtw
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+import constants as cst
 
 from PyQt5 import uic
 from matplotlib.figure import Figure
@@ -35,9 +36,9 @@ class ErrorMap(qtw.QWidget):
         self.error_map_plot = None
         self.error_map_thread = None
         self.error_map_worker = None
-        self.error_map_x_axis_text = "Number of Chunks"
-        self.error_map_y_axis_text = "Polynomial Degree"
-        self.error_map_z_axis_text = "Overlap"
+        self.error_map_x_axis_text = cst.NUMBER_OF_CHUNKS
+        self.error_map_y_axis_text = cst.POLYNOMIAL_DEGREE
+        self.error_map_z_axis_text = cst.OVERLAP
         self.x_axis_range = np.arange(30)+1
         self.y_axis_range = np.arange(30)+1
         self.calc_error = calc_error
@@ -84,14 +85,11 @@ class ErrorMap(qtw.QWidget):
         self.progressBar.setValue(0)
 
     def calErrorFunction(self, x, y, z):
-        if self.error_map_z_axis_text == "Overlap":
-            print(self.error_map_z_axis_text)
+        if self.error_map_z_axis_text == cst.OVERLAP:
             return self.calc_error(x, y, z)
-        if self.error_map_z_axis_text == "Polynomial Degree":
-            print(self.error_map_z_axis_text)
+        if self.error_map_z_axis_text == cst.POLYNOMIAL_DEGREE:
             return self.calc_error(z, y, x)
         else:
-            print(self.error_map_z_axis_text)
             return self.calc_error(x, z, y)
 
     def setStartButton(self):
@@ -110,9 +108,12 @@ class ErrorMap(qtw.QWidget):
             self.setStartButton()
 
     def errorMapHandler(self):
-
         curr_text = self.error_map_button.text()
+        selected_axis = {self.error_map_x_axis_text, self.error_map_y_axis_text}
         if curr_text == "Start":
+            if len(selected_axis) == 1:
+                qtw.QMessageBox.warning(self, "Invalid Input", "Please choose different axis for x and y")
+                return
             z_axis_value = self.z_axis_spinbox.value()
             self.error_map_worker = ErrorMapWorker(
                 self.calErrorFunction, self.x_axis_range, self.y_axis_range, z_axis_value
@@ -141,12 +142,12 @@ class ErrorMap(qtw.QWidget):
 
     def _getZAxisText(self):
         selected_axis = {self.error_map_x_axis_text, self.error_map_y_axis_text}
-        if "Overlap" not in selected_axis:
-            return "Overlap"
-        if "Polynomial Degree" not in selected_axis:
-            return "Polynomial Degree"
-        if "Number of Chunks" not in selected_axis:
-            return "Number of Chunks"
+        if cst.OVERLAP not in selected_axis:
+            return cst.OVERLAP
+        if cst.POLYNOMIAL_DEGREE not in selected_axis:
+            return cst.POLYNOMIAL_DEGREE
+        if cst.NUMBER_OF_CHUNKS not in selected_axis:
+            return cst.NUMBER_OF_CHUNKS
 
     def _changeAxis(self):
         self.error_map_x_axis_text = self._getXAxisText()
@@ -179,15 +180,26 @@ class ErrorMapCanvas(FigureCanvas):
         super().__init__(self.fig)
 
     def _errorMapAxesSetting(self, x_axis_label, y_axis_label, data):
+        self.axes.tick_params(
+            axis='both',
+            which='both',
+            bottom=True,
+            left=True,
+            right=False,
+            top=False,
+            labelbottom=True
+        )
+
+        if (x_axis_label, y_axis_label) in cst.LABEL_PAIRS:
+            data = np.transpose(data)
         self.axes.set_title('Error Map')
+        self.axes.set_xticks(np.arange(30))
+        self.axes.set_xticklabels(cst.TICKS)
+        self.axes.set_yticks(np.arange(30))
+        self.axes.set_yticklabels(cst.TICKS)
         self.axes.set_xlabel(x_axis_label)
         self.axes.set_ylabel(y_axis_label)
-        self.axes.set_xticks(np.arange(30))
-        self.axes.set_xticklabels(np.arange(1, 31), rotation=90)
-        self.axes.set_yticks(np.arange(30))
-        self.axes.set_yticklabels(np.arange(1, 31))
-        if x_axis_label == "Polynomial Degree":
-            data = np.transpose(data)
+        return data
 
     def _showColorBar(self, color_map):
         self.color_bar = self.fig.colorbar(
@@ -197,11 +209,11 @@ class ErrorMapCanvas(FigureCanvas):
     def plot(self,
              data=np.zeros(shape=(10, 10)),
              color_map="inferno",
-             x_axis="Number of Chunks",
-             y_axis="Polynomial Degree"):
+             x_axis=cst.NUMBER_OF_CHUNKS,
+             y_axis=cst.POLYNOMIAL_DEGREE):
         self.clear()
 
-        self._errorMapAxesSetting(x_axis, y_axis, data)
+        data = self._errorMapAxesSetting(x_axis, y_axis, data)
         error_map_plot = self.axes.imshow(data, cmap=color_map, origin='lower')
         self._showColorBar(color_map)
 
@@ -212,6 +224,9 @@ class ErrorMapCanvas(FigureCanvas):
         self.cleared = True
         self.axes.cla()
         self.cax.cla()
+        self.cax.yaxis.tick_right()
+        self.axes.set_xticks([])
+        self.axes.set_yticks([])
         self.draw()
 
 
@@ -221,8 +236,8 @@ class ErrorMapWorker(qtc.QObject):
 
     def __init__(self, calc_error, x_axis_range, y_axis_range, z_axis_value):
         super().__init__()
-        self.canceled = None
-        self.progress = None
+        self.canceled = False
+        self.progress = 0.0
         self.calErrorFunction = calc_error
         self.x_range, self.y_range = x_axis_range, y_axis_range
         self.z_axis_value = z_axis_value
@@ -237,7 +252,7 @@ class ErrorMapWorker(qtc.QObject):
             for y_idx, y in enumerate(self.y_range, start=0):
                 if not self.canceled:
                     error = self.calErrorFunction(x, y, self.z_axis_value)
-                    error_map_data[x_idx][y_idx] = error
+                    error_map_data[y_idx][x_idx] = error
                     self.progress += progress_step
                     self.currProgress.emit(self.progress)
                 else:
