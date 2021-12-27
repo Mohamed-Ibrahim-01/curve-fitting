@@ -64,6 +64,8 @@ class Main_window(QtWidgets.QMainWindow):
 
         self.one_chunk_button = self.findChild(QtWidgets.QRadioButton, "one_chunk")
         self.multiple_chunks_button = self.findChild(QtWidgets.QRadioButton, "mlutiple_chunks")
+        self.one_chunk_button.setChecked(True)
+
 
         # grid layout
         # sliders
@@ -76,7 +78,7 @@ class Main_window(QtWidgets.QMainWindow):
 
         self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
 
-        self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
+        # self.sliders_arr = [self.data_percentage_slider, self.number_of_chunks_slider, self.polynomial_degree_slider]
         # lables
         self.data_percentage_label = self.findChild(QtWidgets.QLabel, "data_percentage_label")
         self.data_percentage_label.setText(str(100))
@@ -113,9 +115,9 @@ class Main_window(QtWidgets.QMainWindow):
         self.canves_toolbar_layout.addWidget(self.latex_widget)
         self.canves_toolbar_layout.addWidget(self.toolbar)
 
-        self.init_visibility_with_radio_buttons()
 
-        self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
+
+
         self.signals_lables_arr = [lambda value, i=0: self.slider_updated(value, i),
                                  lambda value, i=1: self.slider_updated(value, i),
                                  lambda value, i=2: self.slider_updated(value, i)]
@@ -124,16 +126,35 @@ class Main_window(QtWidgets.QMainWindow):
                                  lambda : self.interpolation(),
                                  lambda : self.interpolation()]
 
-        for i in range(len(self.sliders_arr)):
-            self.sliders_arr[i].valueChanged.connect(self.signals_lables_arr[i])
+        # if self.one_chunk_button.isChecked():
+        #     self.signals_interpolation_arr[0] = lambda value : self.change_percentage_of_fitted_data(value)
+        #     # self.percentage = self.data_percentage_slider
+        #     self.signals_interpolation_arr[2] = lambda x , percentage =self.data_percentage_slider.value()  : self.change_percentage_of_fitted_data(percentage)
 
-        for i in range(len(self.sliders_arr)):
-            self.sliders_arr[i].valueChanged.connect(self.signals_interpolation_arr[i])
+
+
 
         self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
         self.ploting_button.clicked.connect(self.plot_data)
         self.fitting_button.clicked.connect(self.interpolation)
         self.poly_eq_box.activated.connect(self.poly_eq_box_selected)
+
+
+        self.init_visibility_with_radio_buttons()
+        self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
+
+        for i in range(len(self.sliders_arr)):
+            self.sliders_arr[i].valueChanged.connect(self.signals_lables_arr[i])
+
+        # for i in range(len(self.sliders_arr)):
+        #     self.sliders_arr[i].valueChanged.connect(self.signals_interpolation_arr[i])
+        #     print(self.signals_interpolation_arr[i])
+
+        self.sliders_arr[0].valueChanged.connect(self.signals_interpolation_arr[0])
+        self.sliders_arr[1].valueChanged.connect(self.signals_interpolation_arr[1])
+        self.sliders_arr[2].valueChanged.connect(self.signals_interpolation_arr[2])
+
+        # self.multiple_chunks_button.toggled.connect(self.setting_chunks_mode)
 
     def init_visibility_with_radio_buttons(self):
         self.setting_chunks_mode()
@@ -143,10 +164,32 @@ class Main_window(QtWidgets.QMainWindow):
             self.number_of_chunks_slider.show()
             self.lable_3.show()
             self.number_of_chunks_lable.show()
+            self.data_percentage_slider.setValue(100)
+            # self.data_percentage_slider.hide()
+            self.signals_interpolation_arr[0] = lambda x: self.interpolation()
+            self.signals_interpolation_arr[2] =  lambda x: self.interpolation()
+            self.polynomial_degree_slider.valueChanged.connect(self.interpolation)
+
+            print(self.signals_interpolation_arr)
+
+            print("inside multible of chunks sttings")
         else:
+            self.data_percentage_slider.show()
             self.number_of_chunks_slider.hide()
             self.lable_3.hide()
             self.number_of_chunks_lable.hide()
+            self.number_of_chunks_slider.setValue(1)
+
+            self.signals_interpolation_arr[0] = lambda value : self.change_percentage_of_fitted_data(value)
+            self.signals_interpolation_arr[2] = lambda value : self.change_percentage_of_fitted_data(value)
+            self.polynomial_degree_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
+
+            print("inside one of chunks sttings")
+
+            print(self.signals_interpolation_arr)
+
+
+
 
     def slider_updated(self, value, i):
         self.lables_arr[i].setText(str(value))
@@ -167,14 +210,14 @@ class Main_window(QtWidgets.QMainWindow):
                                                           markersize=2)
             self.canves.draw()
             self.plotting_flag = False
-            self.ploting_button.setText("Clear Scatterd Points")
+            self.ploting_button.setText("Clear Original Signal")
         else:
             # self.canves.axes.cla()
             self.scatterd_points.remove()
             # self.canves.axes.grid()
             self.canves.draw()
             self.plotting_flag = True
-            self.ploting_button.setText("Plot Scatterd Points")
+            self.ploting_button.setText("Plot Original Signal")
 
     def getErrorOverlap(self, degree, num_of_chunks, overlap):
         return Error.getError(
@@ -262,7 +305,12 @@ class Main_window(QtWidgets.QMainWindow):
         for i in range(self.no_of_chuncks):
             self.poly_eq_box.addItem("Chunk : " + str(i + 1))
 
-    def poly_eq_box_selected(self, index):
+    def poly_box_adjustment_extrapolation(self):
+        self.poly_eq_box.clear()
+
+        self.poly_eq_box.addItem("Chunk : " + str(1))
+
+    def poly_eq_box_selected(self, index=1):
         # selected_eq_coefficients = self.coefficient_list[index]
         selected_eq_coefficients = self.coeff_chunks_list[index]
         self.polynomial_eq = self.print_poly(np.round(selected_eq_coefficients, 2))
@@ -274,6 +322,57 @@ class Main_window(QtWidgets.QMainWindow):
         self.latex_widget.draw()
 
     def change_percentage_of_fitted_data(self, value):
+        self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
+        self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
+        lenth = len(self.x_scattered_points)
+        value = self.data_percentage_slider.value()
+        last_idx = int(lenth * (value / 100)) - 1
+        print("percentage of data error")
+
+        x_clipped = self.x_scattered_points[0:last_idx]
+        y_clipped = self.y_scattered_points[0:last_idx]
+
+        self.x_scattered_points = x_clipped
+        self.y_scattered_points = y_clipped
+        # self.one_chunk_button.setChecked(True)
+        # self.number_of_chunks_slider.setValue(1)
+
+        self.scatterd_points.set_data(x_clipped,y_clipped)
+        self.canves.draw()
+        self.extrapolation()
+
+    def fitting(self, degree):
+        NUM_OF_POINTS = 1000
+        no_fo_chunks = 1
+        x_fit = np.linspace(self.min_xlim_point, self.max_xlim_point, NUM_OF_POINTS)
+
+        chunks_list_x = np.array_split(self.x_scattered_points , no_fo_chunks)
+        chunks_list_y = np.array_split(self.y_scattered_points, no_fo_chunks)
+
+        x_fit_chunks_list = np.array_split(x_fit, no_fo_chunks)
+
+        y_fit_list = []
+        self.coeff_chunks_list = []
+        self.poly_box_adjustment_extrapolation()
+        for i in range(no_fo_chunks):
+            chunk_coeff = np.polyfit(chunks_list_x[i], chunks_list_y[i], degree)
+            self.coeff_chunks_list.append(chunk_coeff)
+            chunk_modles = np.poly1d(chunk_coeff)
+
+            y_fit = chunk_modles(x_fit_chunks_list[i])
+
+            y_fit_list.extend(y_fit)
+
+        return x_fit, y_fit_list
+
+    def extrapolation(self):
+        poly_degree = self.polynomial_degree_slider.value()
+        x_extrapolation, y_extrapolation = self.fitting(poly_degree)
+        self.current_fitted_line.set_data(x_extrapolation,y_extrapolation)
+        self.canves.draw()
+
+
+    def change_percentage_of_fitted_data_with_shuffling(self, value):
         self.x_scattered_points = self.loaded_data[self.loaded_data.columns[0]].to_numpy()
         self.y_scattered_points = self.loaded_data[self.loaded_data.columns[1]].to_numpy()
         lenth = len(self.x_scattered_points)
