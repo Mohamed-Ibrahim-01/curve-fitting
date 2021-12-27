@@ -210,14 +210,14 @@ class Main_window(QtWidgets.QMainWindow):
                                                           markersize=2)
             self.canves.draw()
             self.plotting_flag = False
-            self.ploting_button.setText("Clear Scatterd Points")
+            self.ploting_button.setText("Clear Original Signal")
         else:
             # self.canves.axes.cla()
             self.scatterd_points.remove()
             # self.canves.axes.grid()
             self.canves.draw()
             self.plotting_flag = True
-            self.ploting_button.setText("Plot Scatterd Points")
+            self.ploting_button.setText("Plot Original Signal")
 
 
     def getErrorOverlap(self, function_degree,no_of_chuncks,overlapping):
