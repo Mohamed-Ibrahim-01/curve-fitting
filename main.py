@@ -346,6 +346,11 @@ class Main_window(QtWidgets.QMainWindow):
         for i in range(self.no_of_chuncks):
             self.poly_eq_box.addItem("Chunk : " + str(i + 1))
 
+    def poly_box_adjustment_extrapolation(self):
+        self.poly_eq_box.clear()
+
+        self.poly_eq_box.addItem("Chunk : " + str(1))
+
     def poly_eq_box_selected(self, index=1):
         # selected_eq_coefficients = self.coefficient_list[index]
         selected_eq_coefficients = self.coeff_chunks_list[index]
@@ -388,9 +393,11 @@ class Main_window(QtWidgets.QMainWindow):
         x_fit_chunks_list = np.array_split(x_fit, no_fo_chunks)
 
         y_fit_list = []
-
+        self.coeff_chunks_list = []
+        self.poly_box_adjustment_extrapolation()
         for i in range(no_fo_chunks):
             chunk_coeff = np.polyfit(chunks_list_x[i], chunks_list_y[i], degree)
+            self.coeff_chunks_list.append(chunk_coeff)
             chunk_modles = np.poly1d(chunk_coeff)
 
             y_fit = chunk_modles(x_fit_chunks_list[i])
