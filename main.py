@@ -176,56 +176,15 @@ class Main_window(QtWidgets.QMainWindow):
             self.plotting_flag = True
             self.ploting_button.setText("Plot Scatterd Points")
 
-
-    def getErrorOverlap(self, function_degree,no_of_chuncks,overlapping):
-        total_Residual = 0
-        length_of_data = len(self.x_scattered_points)
-        intervals = int(length_of_data / no_of_chuncks)
-        for i in range(no_of_chuncks):
-            if i == 0:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals:intervals*(i+1)-1],self.y_scattered_points[0+i*intervals:intervals*(i+1)-1],function_degree,full='true')
-                if len(residual) > 0:
-                    total_Residual = total_Residual + residual[0]
-
-            elif i<no_of_chuncks-1:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))]
-                ,self.y_scattered_points[i*intervals-int(i*intervals*(overlapping/100)):intervals*(i+1)-1-int(i*intervals*(overlapping/100))],function_degree,full='true')
-                if len(residual) > 0:
-                    total_Residual = total_Residual + residual[0]
-
-            else:
-                coefficients, residual, _, _, _  = np.polyfit(self.x_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data]
-                ,self.y_scattered_points[intervals*(i)-1-int((i-1)*intervals*(overlapping/100)):length_of_data],function_degree,full='true')
-                if len(residual) > 0:
-                    total_Residual = total_Residual + residual[0]
-        return total_Residual/np.sqrt(length_of_data)
-
-    def getError(self, function_degree, no_of_chuncks):
-        "Hello Guys"
-        total_Residual = 0
-        length_of_data = len(self.x_scattered_points)
-        intervals = int(length_of_data / no_of_chuncks)
-        for i in range(no_of_chuncks):
-            coefficients, residual, *_ = np.polyfit(self.x_scattered_points[i * intervals:intervals * (i + 1) - 1],
-                                                    self.y_scattered_points[
-                                                    0 + i * intervals:intervals * (i + 1) - 1],
-                                                    function_degree, full=True)
-            if len(residual) > 0:
-                total_Residual = total_Residual + residual[0]
-
-        return total_Residual
-
     def getErrorOverlap(self, degree, num_of_chunks, overlap):
         return Error.getError(
             degree, num_of_chunks, overlap, self.x_scattered_points, self.y_scattered_points
         )
 
-
     def getError(self, degree, num_of_chunks):
         return Error.getError(
             degree, num_of_chunks, 0, self.x_scattered_points, self.y_scattered_points
         )
-
 
     def fitting_data(self, function_degree, no_of_chunks):
         NUM_OF_POINTS = 1000
