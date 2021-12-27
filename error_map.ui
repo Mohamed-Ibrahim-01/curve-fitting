@@ -18,6 +18,12 @@
     <layout class="QVBoxLayout" name="error_map_setting_layout">
      <item>
       <widget class="QGroupBox" name="x_axis_groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>X axis :</string>
        </property>
@@ -25,7 +31,7 @@
         <item>
          <widget class="QRadioButton" name="x_overlap">
           <property name="text">
-           <string>Overlap</string>
+           <string>Overlap Percentage</string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -57,6 +63,12 @@
      </item>
      <item>
       <widget class="QGroupBox" name="y_axis_groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>Y axis :</string>
        </property>
@@ -64,7 +76,7 @@
         <item>
          <widget class="QRadioButton" name="y_overlap">
           <property name="text">
-           <string>Overlap</string>
+           <string>Overlap Percentage</string>
           </property>
           <property name="checked">
            <bool>false</bool>
