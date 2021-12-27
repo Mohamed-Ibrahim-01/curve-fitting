@@ -410,6 +410,14 @@ class Main_window(QtWidgets.QMainWindow):
         poly_degree = self.polynomial_degree_slider.value()
         x_extrapolation, y_extrapolation = self.fitting(poly_degree)
         self.current_fitted_line.set_data(x_extrapolation,y_extrapolation)
+
+        degree = self.polynomial_degree_slider.value()
+        abs_error = self.getError(degree, 1)
+        base_error = self.getError(0, 1)
+        self.percentage_error = 100 * np.round(abs_error / base_error, 2)
+        self.current_fitted_line.set_label("Percentage Error: " + str(self.percentage_error) + " %")
+        self.canves.axes.legend()
+
         self.canves.draw()
 
 
