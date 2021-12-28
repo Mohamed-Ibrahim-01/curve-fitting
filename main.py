@@ -108,11 +108,12 @@ class Main_window(QtWidgets.QMainWindow):
         self.latex_widget = latex_canves()
         self.toolbar = navigation_toolbar(self.latex_widget, self)
 
-        self.latex_layout = self.findChild(QtWidgets.QHBoxLayout, "latex_layout")
-        self.canves_toolbar_layout = self.latex_layout.findChild(QtWidgets.QVBoxLayout, "canves_toolbar_layout")
+        self.equations_layout = self.findChild(QtWidgets.QVBoxLayout, "equations_layout")
+        self.latex_canves_layout = self.equations_layout.findChild(QtWidgets.QVBoxLayout, "latex_layout")
+        self.toolbar_layout = self.equations_layout.findChild(QtWidgets.QHBoxLayout, "toolbar_layout")
 
-        self.canves_toolbar_layout.addWidget(self.latex_widget)
-        self.canves_toolbar_layout.addWidget(self.toolbar)
+        self.latex_canves_layout.addWidget(self.latex_widget)
+        self.toolbar_layout.addWidget(self.toolbar)
 
 
 
@@ -201,10 +202,13 @@ class Main_window(QtWidgets.QMainWindow):
 
             self.max_xlim_point = max(self.x_scattered_points)
             self.min_xlim_point = min(self.x_scattered_points)
+            self.plotting_flag = True
+            self.canves.axes.set_xlim(self.min_xlim_point, self.max_xlim_point)
+            self.plot_data()
 
     def plot_data(self):
         if self.plotting_flag:
-            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points,"o",
+            self.scatterd_points, = self.canves.axes.plot(self.x_scattered_points, self.y_scattered_points,"-",
                                                           markersize=2)
             self.canves.draw()
             self.plotting_flag = False
