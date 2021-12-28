@@ -94,7 +94,6 @@ class Main_window(QtWidgets.QMainWindow):
         # Buttons
         self.ploting_button = self.findChild(QtWidgets.QPushButton, "start_button")
         self.plotting_flag = True
-        self.fitting_button = self.findChild(QtWidgets.QPushButton, "fitting_button")
 
         # combo Box
         self.poly_eq_box = self.findChild(QtWidgets.QComboBox, "poly_eq_box")
@@ -136,7 +135,6 @@ class Main_window(QtWidgets.QMainWindow):
 
         self.data_percentage_slider.valueChanged.connect(self.change_percentage_of_fitted_data)
         self.ploting_button.clicked.connect(self.plot_data)
-        self.fitting_button.clicked.connect(self.interpolation)
         self.poly_eq_box.activated.connect(self.poly_eq_box_selected)
 
 
